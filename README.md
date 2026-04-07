@@ -27,4 +27,4 @@ npm run preview
 
 ## 一键部署指南
 
-请查看 `.trae/documents/DEPLOY_一键部署指南.md`。
+请查看 `DEPLOY.md`。
