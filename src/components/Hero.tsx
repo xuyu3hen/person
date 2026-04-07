@@ -68,7 +68,7 @@ export function Hero() {
           <div className="card p-5 lg:p-6">
             <div className="flex items-center justify-between">
               <div className="text-sm font-semibold tracking-tight">
-                Research Snapshot
+                当前概览
               </div>
               <div className="text-xs text-[color:var(--muted)]">Now</div>
             </div>
@@ -78,7 +78,7 @@ export function Hero() {
                   Focus
                 </div>
                 <div className="mt-2 text-sm leading-6">
-                  LLM Agents · Reproducible Evaluation · ML Systems
+                  ML Systems · Developer Tooling · Web Visualization
                 </div>
               </div>
               <div className="rounded-xl border border-[color:var(--border)] bg-[color:color-mix(in_srgb,var(--panel)_70%,transparent)] p-4">
@@ -86,7 +86,7 @@ export function Hero() {
                   Principle
                 </div>
                 <div className="mt-2 text-sm leading-6">
-                  Clear metrics, clean code, minimal abstractions.
+                  可度量指标 · 可复现流程 · 可维护实现
                 </div>
               </div>
               <div className="rounded-xl border border-[color:var(--border)] bg-[color:color-mix(in_srgb,var(--panel)_70%,transparent)] p-4">
@@ -94,7 +94,7 @@ export function Hero() {
                   Availability
                 </div>
                 <div className="mt-2 text-sm leading-6">
-                  Open to collaborations and research engineering roles.
+                  欢迎科研交流、工程合作与开源共建。
                 </div>
               </div>
             </div>

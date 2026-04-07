@@ -7,12 +7,11 @@
     <circle cx="860" cy="210" r="4" fill="#6ee7ff"/>
   </g>
   <g font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" fill="#eaf2ff">
-    <text x="80" y="170" font-size="46" font-weight="700">你的姓名</text>
-    <text x="80" y="220" font-size="22" opacity="0.8">Research Engineer · Developer</text>
+    <text x="80" y="170" font-size="46" font-weight="700">徐煜辰</text>
+    <text x="80" y="220" font-size="22" opacity="0.8">Research Engineer · Full-Stack Developer</text>
     <text x="80" y="285" font-size="18" opacity="0.75">Research · Projects · Publications · Contact</text>
   </g>
   <g font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\"" fill="#a8b3c7" opacity="0.9">
     <text x="80" y="520" font-size="14">static · minimal · academic-tech</text>
   </g>
 </svg>
-

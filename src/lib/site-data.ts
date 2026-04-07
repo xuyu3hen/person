@@ -43,89 +43,93 @@ export type AwardOrTalk = {
   link?: string;
 };
 
+const projects: Project[] = [
+  {
+    name: "Personal Homepage",
+    description:
+      "Next.js 静态导出的科研技术向个人主页：单页滚动、主题切换、论文 BibTeX 复制。",
+    tech: ["Next.js", "TypeScript", "Tailwind"],
+    repoUrl: "https://github.com/xuyu3hen/person",
+    featured: true,
+  },
+  {
+    name: "Research Notes",
+    description: "科研学习与工程实践的笔记与实验记录（建议独立仓库维护）。",
+    tech: ["Markdown", "Obsidian", "GitHub Pages"],
+    repoUrl: "https://github.com/xuyu3hen",
+    featured: true,
+  },
+  {
+    name: "Toolbox",
+    description: "个人常用脚手架与自动化脚本集合：让项目初始化、发布与维护更省心。",
+    tech: ["Node.js", "TypeScript", "CI/CD"],
+    repoUrl: "https://github.com/xuyu3hen",
+  },
+];
+
 export const site = {
-  name: "你的姓名",
-  title: "Research Engineer · Developer",
-  tagline: "把科研问题工程化，把工程系统学术化。",
+  name: "徐煜辰",
+  title: "Research Engineer · Full-Stack Developer",
+  tagline: "科研与工程交叉：可复现、可观测、可维护。",
   intro:
-    "关注 ML Systems / NLP / LLM Agent 的可复现评测与工程落地，擅长将研究想法转化为可维护的生产级原型。",
-  location: "City, Country",
+    "关注 ML Systems / Developer Tooling / Web 可视化等交叉方向，偏好把研究与工程问题拆成可度量指标与可复现流程，并将想法快速落地为可交付的原型与产品。",
+  location: "China",
   timezone: "UTC+8",
   email: "you@example.com",
   cvUrl: "/cv.txt",
   socials: [
-    { label: "GitHub", href: "https://github.com/yourname" },
+    { label: "GitHub", href: "https://github.com/xuyu3hen" },
     { label: "Google Scholar", href: "https://scholar.google.com" },
     { label: "LinkedIn", href: "https://www.linkedin.com" },
     { label: "ORCID", href: "https://orcid.org" },
   ] satisfies SocialLink[],
   researchAreas: [
     {
-      title: "LLM Agent Evaluation",
-      keywords: ["agents", "benchmarks", "reproducibility"],
+      title: "Developer Tooling",
+      keywords: ["DX", "automation", "docs"],
       description:
-        "构建可复现的评测协议与指标，分析工具调用、记忆与规划策略对效果的影响。",
+        "面向个人与团队效率的工具与工作流：模板化、自动化、结构化知识管理，让产出更可持续。",
     },
     {
       title: "ML Systems",
       keywords: ["latency", "serving", "observability"],
-      description: "优化推理链路与系统可观测性，追求更稳定的延迟与更低成本。",
+      description:
+        "关注推理链路性能与可观测性：让系统更稳定、成本更可控，同时保留对实验与评测的透明度。",
     },
     {
-      title: "NLP for Science",
-      keywords: ["information extraction", "retrieval", "tooling"],
-      description: "将信息抽取与检索增强用于科研知识管理与自动化工作流。",
+      title: "Web for Research",
+      keywords: ["visualization", "SSG", "UX"],
+      description:
+        "用极简信息架构与高性能前端展示研究/项目/成果，让内容可检索、可链接、可持续更新。",
     },
   ] satisfies ResearchArea[],
-  projects: [
-    {
-      name: "PaperTrace",
-      description: "一个面向科研写作的引用追踪与 BibTeX 管理工具原型。",
-      tech: ["TypeScript", "Next.js", "Tailwind"],
-      repoUrl: "https://github.com/yourname/papertrace",
-      demoUrl: "https://example.com",
-      featured: true,
-    },
-    {
-      name: "AgentEval Kit",
-      description: "轻量化工具调用评测框架，支持多轮对话与可复现实验配置。",
-      tech: ["Python", "PyTorch", "Hydra"],
-      repoUrl: "https://github.com/yourname/agenteval-kit",
-      featured: true,
-    },
-    {
-      name: "Latency Lab",
-      description: "推理服务延迟分析与火焰图可视化脚手架。",
-      tech: ["Rust", "OpenTelemetry"],
-      repoUrl: "https://github.com/yourname/latency-lab",
-    },
-  ] satisfies Project[],
+  projects,
   publications: [
     {
       year: 2025,
       title: "A Reproducible Protocol for Tool-Using Agent Evaluation",
-      authors: "Your Name, Coauthor A, Coauthor B",
+      authors: "Yuchen Xu, Coauthor A, Coauthor B",
       venue: "NeurIPS (Workshop)",
       doiUrl: "https://doi.org/10.0000/example",
       pdfUrl: "https://arxiv.org/pdf/0000.00000.pdf",
-      codeUrl: "https://github.com/yourname/agenteval-kit",
+      codeUrl: "https://github.com/xuyu3hen",
       bibtex:
-        "@inproceedings{yourname2025agenteval,\n  title={A Reproducible Protocol for Tool-Using Agent Evaluation},\n  author={Your Name and Coauthor A and Coauthor B},\n  booktitle={NeurIPS Workshop},\n  year={2025},\n  url={https://arxiv.org/abs/0000.00000}\n}",
+        "@inproceedings{xu2025agenteval,\n  title={A Reproducible Protocol for Tool-Using Agent Evaluation},\n  author={Yuchen Xu and Coauthor A and Coauthor B},\n  booktitle={NeurIPS Workshop},\n  year={2025},\n  url={https://arxiv.org/abs/0000.00000}\n}",
     },
     {
       year: 2024,
       title: "Observability-First Serving for Efficient LLM Inference",
-      authors: "Your Name, Coauthor C",
+      authors: "Yuchen Xu, Coauthor C",
       venue: "arXiv",
       pdfUrl: "https://arxiv.org/pdf/0000.00000.pdf",
       bibtex:
-        "@article{yourname2024observability,\n  title={Observability-First Serving for Efficient LLM Inference},\n  author={Your Name and Coauthor C},\n  journal={arXiv preprint arXiv:0000.00000},\n  year={2024}\n}",
+        "@article{xu2024observability,\n  title={Observability-First Serving for Efficient LLM Inference},\n  author={Yuchen Xu and Coauthor C},\n  journal={arXiv preprint arXiv:0000.00000},\n  year={2024}\n}",
     },
   ] satisfies Publication[],
   experience: [
     {
-      org: "Your University",
-      role: "Ph.D. Candidate / Research Assistant",
+      org: "Your University (Example)",
+      role: "Research Student",
       time: "2022 — Present",
       bullets: [
         "提出并实现可复现实验流水线，缩短评测迭代时间。",
@@ -133,7 +137,7 @@ export const site = {
       ],
     },
     {
-      org: "Your Company",
+      org: "Your Company (Example)",
       role: "Software Engineer",
       time: "2019 — 2022",
       bullets: [

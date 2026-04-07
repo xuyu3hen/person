@@ -1,16 +1,21 @@
+import type { Metadata } from "next";
+
 import "./globals.css";
 import { ThemeScript } from "./theme-script";
 
 export const dynamic = "force-static";
 
-export const metadata = {
-  title: "科研技术向程序员个人主页",
-  description:
-    "科研与工程交叉方向的个人主页：研究方向、开源项目、论文出版、履历与联系方式。",
+const metadataBase = process.env.NEXT_PUBLIC_SITE_URL
+  ? new URL(process.env.NEXT_PUBLIC_SITE_URL)
+  : undefined;
+
+export const metadata: Metadata = {
+  metadataBase,
+  title: "徐煜辰 | 科研技术向个人主页",
+  description: "科研与工程交叉方向的个人主页：研究方向、开源项目、论文出版、履历与联系方式。",
   openGraph: {
-    title: "科研技术向程序员个人主页",
-    description:
-      "科研与工程交叉方向的个人主页：研究方向、开源项目、论文出版、履历与联系方式。",
+    title: "徐煜辰 | 科研技术向个人主页",
+    description: "科研与工程交叉方向的个人主页：研究方向、开源项目、论文出版、履历与联系方式。",
     type: "website",
     images: [{ url: "/og.svg" }],
   },
