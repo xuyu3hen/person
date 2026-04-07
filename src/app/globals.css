@@ -1,26 +1,80 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #0b1020;
+  --panel: rgba(255, 255, 255, 0.04);
+  --text: rgba(255, 255, 255, 0.92);
+  --muted: rgba(255, 255, 255, 0.62);
+  --accent: #6ee7ff;
+  --border: rgba(255, 255, 255, 0.1);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+[data-theme="light"] {
+  --bg: #f8fafc;
+  --panel: rgba(2, 6, 23, 0.04);
+  --text: rgba(2, 6, 23, 0.92);
+  --muted: rgba(2, 6, 23, 0.64);
+  --accent: #0ea5e9;
+  --border: rgba(2, 6, 23, 0.12);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial,
+    "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 24%, transparent);
+}
+
+.container {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 1120px;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.section {
+  scroll-margin-top: 96px;
+}
+
+.card {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 9999px;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  transition: transform 180ms ease, background-color 180ms ease,
+    border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.button:hover {
+  background: color-mix(in srgb, var(--panel) 72%, transparent);
+  transform: translateY(-1px);
+}
+
+.buttonPrimary {
+  background: var(--accent);
+  color: rgba(2, 6, 23, 0.92);
+  border-color: transparent;
+}
+
+.buttonPrimary:hover {
+  background: color-mix(in srgb, var(--accent) 88%, white);
 }
