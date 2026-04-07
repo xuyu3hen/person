@@ -30,6 +30,87 @@ body {
     "Apple Color Emoji", "Segoe UI Emoji";
 }
 
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(900px 600px at 12% 18%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 60%),
+    radial-gradient(760px 520px at 88% 26%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 62%),
+    radial-gradient(900px 620px at 50% 110%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 66%),
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--border) 55%, transparent) 0px,
+      color-mix(in srgb, var(--border) 55%, transparent) 1px,
+      transparent 1px,
+      transparent 80px
+    );
+  opacity: 0.55;
+  mix-blend-mode: normal;
+  z-index: 0;
+}
+
+.heroGlow {
+  position: absolute;
+  inset: -20%;
+  background:
+    radial-gradient(520px 420px at 25% 30%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%),
+    radial-gradient(520px 420px at 75% 50%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 62%),
+    conic-gradient(
+      from 200deg at 60% 40%,
+      transparent,
+      color-mix(in srgb, var(--accent) 20%, transparent),
+      transparent 40%
+    );
+  filter: blur(18px);
+  opacity: 0.75;
+  transform: translate3d(0, 0, 0);
+  animation: heroFloat 10s ease-in-out infinite;
+}
+
+.heroTitle {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--text) 92%, transparent),
+    color-mix(in srgb, var(--accent) 72%, white),
+    color-mix(in srgb, var(--text) 92%, transparent)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.card {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.14);
+}
+
+.card:hover {
+  box-shadow: 0 16px 46px rgba(0, 0, 0, 0.18);
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
+}
+
+@keyframes heroFloat {
+  0% {
+    transform: translate3d(0px, 0px, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(10px, -12px, 0) scale(1.02);
+  }
+  100% {
+    transform: translate3d(0px, 0px, 0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroGlow {
+    animation: none;
+  }
+}
+
 ::selection {
   background: color-mix(in srgb, var(--accent) 24%, transparent);
 }
@@ -44,12 +125,6 @@ body {
 
 .section {
   scroll-margin-top: 96px;
-}
-
-.card {
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--panel);
 }
 
 .button {

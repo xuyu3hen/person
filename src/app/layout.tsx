@@ -7,6 +7,8 @@ export const dynamic = "force-static";
 
 const metadataBase = process.env.NEXT_PUBLIC_SITE_URL
   ? new URL(process.env.NEXT_PUBLIC_SITE_URL)
+  : process.env.VERCEL_URL
+    ? new URL(`https://${process.env.VERCEL_URL}`)
   : undefined;
 
 export const metadata: Metadata = {

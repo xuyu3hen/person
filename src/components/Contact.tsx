@@ -9,6 +9,7 @@ import { SectionHeader } from "./SectionHeader";
 
 export function Contact() {
   const { copy, copied } = useCopyToClipboard();
+  const socials = site.socials.filter((s) => s.href.trim().length > 0);
 
   return (
     <section id="contact" className="section">
@@ -56,7 +57,7 @@ export function Contact() {
           <div className="card p-5">
             <div className="text-sm font-semibold tracking-tight">Links</div>
             <div className="mt-3 grid grid-cols-1 gap-2">
-              {site.socials.map((s) => (
+              {socials.map((s) => (
                 <a
                   key={s.label}
                   className="flex items-center justify-between rounded-xl border border-transparent px-4 py-3 text-sm transition-colors hover:border-[color:var(--border)] hover:bg-[color:var(--panel)]"

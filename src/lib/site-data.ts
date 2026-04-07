@@ -75,13 +75,13 @@ export const site = {
     "关注 ML Systems / Developer Tooling / Web 可视化等交叉方向，偏好把研究与工程问题拆成可度量指标与可复现流程，并将想法快速落地为可交付的原型与产品。",
   location: "China",
   timezone: "UTC+8",
-  email: "you@example.com",
+  email: "yu3hen@126.com",
   cvUrl: "/cv.txt",
   socials: [
     { label: "GitHub", href: "https://github.com/xuyu3hen" },
-    { label: "Google Scholar", href: "https://scholar.google.com" },
-    { label: "LinkedIn", href: "https://www.linkedin.com" },
-    { label: "ORCID", href: "https://orcid.org" },
+    { label: "Google Scholar", href: "" },
+    { label: "LinkedIn", href: "" },
+    { label: "ORCID", href: "" },
   ] satisfies SocialLink[],
   researchAreas: [
     {

@@ -33,12 +33,14 @@ export function TopNav() {
           className="flex items-center gap-3"
           aria-label="回到首页"
         >
-          <div className="h-9 w-9 rounded-xl border border-[color:var(--border)] bg-[color:var(--panel)]" />
+          <div className="h-9 w-9 rounded-xl border border-[color:color-mix(in_srgb,var(--accent)_35%,var(--border))] bg-[color:color-mix(in_srgb,var(--panel)_70%,transparent)] shadow-[0_0_0_1px_color-mix(in_srgb,var(--accent)_12%,transparent)]" />
           <div className="flex flex-col leading-tight">
             <div className="text-sm font-semibold tracking-tight">
               {site.name}
             </div>
-            <div className="text-xs text-[color:var(--muted)]">Research · Engineering</div>
+            <div className="text-xs text-[color:var(--muted)]">
+              Research · Engineering
+            </div>
           </div>
         </button>
 

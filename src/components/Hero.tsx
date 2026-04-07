@@ -3,44 +3,53 @@ import { ArrowUpRight, Download, Mail } from "lucide-react";
 import { site } from "@/lib/site-data";
 
 export function Hero() {
-  const github = site.socials.find((x) => x.label === "GitHub")?.href ?? "#";
-  const scholar =
-    site.socials.find((x) => x.label === "Google Scholar")?.href ?? "#";
+  const github = site.socials.find((x) => x.label === "GitHub")?.href;
+  const scholar = site.socials.find((x) => x.label === "Google Scholar")?.href;
 
   return (
     <section id="home" className="section">
-      <div className="container pt-16 pb-12">
+      <div className="container pt-16 pb-12 relative">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
+        >
+          <div className="heroGlow" />
+        </div>
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1.3fr_0.7fr]">
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-3">
               <div className="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--muted)]">
                 {site.title}
               </div>
-              <h1 className="text-[40px] leading-[1.08] font-semibold tracking-tight">
+              <h1 className="text-[42px] leading-[1.08] font-semibold tracking-tight heroTitle">
                 {site.name}
               </h1>
               <p className="max-w-2xl text-[15px] leading-7 text-[color:var(--muted)]">
                 {site.intro}
               </p>
               <div className="mt-2 flex flex-wrap items-center gap-3">
-                <a
-                  className="button buttonPrimary"
-                  href={github}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <ArrowUpRight size={16} />
-                  <span className="text-sm">GitHub</span>
-                </a>
-                <a
-                  className="button"
-                  href={scholar}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <ArrowUpRight size={16} />
-                  <span className="text-sm">Scholar</span>
-                </a>
+                {github ? (
+                  <a
+                    className="button buttonPrimary"
+                    href={github}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <ArrowUpRight size={16} />
+                    <span className="text-sm">GitHub</span>
+                  </a>
+                ) : null}
+                {scholar ? (
+                  <a
+                    className="button"
+                    href={scholar}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <ArrowUpRight size={16} />
+                    <span className="text-sm">Scholar</span>
+                  </a>
+                ) : null}
                 <a className="button" href={`mailto:${site.email}`}>
                   <Mail size={16} />
                   <span className="text-sm">Email</span>
