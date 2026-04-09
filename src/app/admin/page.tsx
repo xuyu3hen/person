@@ -567,7 +567,7 @@ export default function AdminPage() {
                       <button
                         className="button"
                         onClick={() => {
-                          window.open(`/admin/notes/${n.id}`, "_blank", "noopener,noreferrer");
+                          window.open(`/admin/notes/${n.id}/read`, "_blank", "noopener,noreferrer");
                         }}
                       >
                         查看
