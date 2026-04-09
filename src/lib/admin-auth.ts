@@ -2,12 +2,20 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 
 const cookieName = "admin_session";
 
+function normalizeEnvValue(v: string | undefined) {
+  const s = (v ?? "").trim();
+  return s ? s : "";
+}
+
 function getPassword() {
-  return process.env.ADMIN_PASSWORD ?? process.env.ADMIN_TOKEN ?? "";
+  return normalizeEnvValue(process.env.ADMIN_PASSWORD) ||
+    normalizeEnvValue(process.env.ADMIN_TOKEN);
 }
 
 function getSecret() {
-  return process.env.ADMIN_SESSION_SECRET ?? getPassword();
+  return (
+    normalizeEnvValue(process.env.ADMIN_SESSION_SECRET) || getPassword()
+  );
 }
 
 function base64UrlEncode(buf: Uint8Array) {
@@ -81,4 +89,3 @@ export function isPasswordValid(password: string) {
   if (!expected) return false;
   return password === expected;
 }
-
