@@ -35,9 +35,18 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
     credentials: "include",
   });
   const text = await res.text();
-  const data = text ? JSON.parse(text) : null;
+  let data: unknown = null;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    data = null;
+  }
   if (!res.ok) {
-    throw new Error(data?.error ?? `HTTP ${res.status}`);
+    const msg =
+      data && typeof data === "object" && "error" in data
+        ? String((data as { error: unknown }).error)
+        : `HTTP ${res.status}`;
+    throw new Error(msg);
   }
   return data as T;
 }
