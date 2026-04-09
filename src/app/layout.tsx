@@ -5,11 +5,19 @@ import { ThemeScript } from "./theme-script";
 
 export const dynamic = "force-static";
 
-const metadataBase = process.env.NEXT_PUBLIC_SITE_URL
-  ? new URL(process.env.NEXT_PUBLIC_SITE_URL)
-  : process.env.VERCEL_URL
-    ? new URL(`https://${process.env.VERCEL_URL}`)
-  : undefined;
+const metadataBase = (() => {
+  const publicSiteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? process.env.SITE_URL;
+  if (publicSiteUrl) return new URL(publicSiteUrl);
+
+  const vercelUrl = process.env.VERCEL_URL;
+  if (vercelUrl) return new URL(`https://${vercelUrl}`);
+
+  const netlifyUrl =
+    process.env.URL ?? process.env.DEPLOY_PRIME_URL ?? process.env.NETLIFY_URL;
+  if (netlifyUrl) return new URL(netlifyUrl);
+
+  return new URL("http://localhost:3000");
+})();
 
 export const metadata: Metadata = {
   metadataBase,
