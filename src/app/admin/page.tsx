@@ -566,6 +566,14 @@ export default function AdminPage() {
                     <div className="flex flex-col gap-2">
                       <button
                         className="button"
+                        onClick={() => {
+                          window.open(`/admin/notes/${n.id}`, "_blank", "noopener,noreferrer");
+                        }}
+                      >
+                        查看
+                      </button>
+                      <button
+                        className="button"
                         onClick={() => setEditingId(n.id)}
                       >
                         编辑

@@ -48,6 +48,38 @@ function getErrorMessage(e: unknown) {
   return e instanceof Error ? e.message : "Internal error";
 }
 
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    assertAdmin(req);
+    const { id } = await params;
+    await ensureSchema();
+    const sql = getSql();
+    const result = await sql`
+      SELECT id, title, content, visibility, tags, created_at, updated_at
+      FROM journal_notes
+      WHERE id = ${id};
+    `;
+    if (!result.rows.length) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    const r = result.rows[0] as Record<string, unknown>;
+    return NextResponse.json({
+      id: String(r.id),
+      title: String(r.title),
+      content: String(r.content),
+      visibility: r.visibility === "public" ? "public" : "private",
+      tags: Array.isArray(r.tags) ? (r.tags as string[]) : [],
+      createdAt: new Date(String(r.created_at)).toISOString(),
+      updatedAt: new Date(String(r.updated_at)).toISOString(),
+    });
+  } catch (e: unknown) {
+    return NextResponse.json({ error: getErrorMessage(e) }, { status: getErrorStatus(e) });
+  }
+}
+
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
