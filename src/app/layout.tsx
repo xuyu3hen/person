@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 
 import "./globals.css";
 import { ThemeScript } from "./theme-script";
-import { shortVersion } from "./version";
 
 export const dynamic = "force-static";
 
@@ -37,15 +36,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const ver = shortVersion() || "dev";
   return (
     <html lang="zh-CN" className="h-full antialiased" suppressHydrationWarning>
       <body className="min-h-full flex flex-col">
         <ThemeScript />
-        <div className="flex-1">{children}</div>
-        <footer className="py-6 text-center text-xs text-[color:var(--muted)]">
-          版本 {ver}
-        </footer>
+        {children}
       </body>
     </html>
   );

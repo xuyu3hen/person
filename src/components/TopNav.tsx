@@ -39,7 +39,7 @@ export function TopNav() {
               {site.name}
             </div>
             <div className="text-xs text-[color:var(--muted)]">
-              Research · Engineering
+              Journal · Plans · Life
             </div>
           </div>
         </button>

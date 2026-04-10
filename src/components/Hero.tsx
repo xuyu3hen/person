@@ -87,7 +87,7 @@ export function Hero() {
                   Focus
                 </div>
                 <div className="mt-2 text-sm leading-6">
-                  ML Systems · Developer Tooling · Web Visualization
+                  日记 · 今日计划 · 生活记录
                 </div>
               </div>
               <div className="rounded-xl border border-[color:var(--border)] bg-[color:color-mix(in_srgb,var(--panel)_70%,transparent)] p-4">
@@ -95,7 +95,7 @@ export function Hero() {
                   Principle
                 </div>
                 <div className="mt-2 text-sm leading-6">
-                  可度量指标 · 可复现流程 · 可维护实现
+                  简单 · 规律 · 可持续
                 </div>
               </div>
               <div className="rounded-xl border border-[color:var(--border)] bg-[color:color-mix(in_srgb,var(--panel)_70%,transparent)] p-4">
@@ -103,7 +103,7 @@ export function Hero() {
                   Availability
                 </div>
                 <div className="mt-2 text-sm leading-6">
-                  欢迎科研交流、工程合作与开源共建。
+                  记录会持续更新。
                 </div>
               </div>
             </div>

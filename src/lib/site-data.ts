@@ -45,9 +45,9 @@ export type AwardOrTalk = {
 
 const projects: Project[] = [
   {
-    name: "Personal Homepage",
+    name: "迷亭桑的梦想生活",
     description:
-      "Next.js 静态导出的科研技术向个人主页：单页滚动、主题切换、论文 BibTeX 复制。",
+      "个人网站（含日记后台）：记录生活、计划与想法，支持主题切换与静态展示。",
     tech: ["Next.js", "TypeScript", "Tailwind"],
     repoUrl: "https://github.com/xuyu3hen/person",
     featured: true,
@@ -69,10 +69,10 @@ const projects: Project[] = [
 
 export const site = {
   name: "迷亭桑的梦想生活",
-  title: "Research Engineer · Full-Stack Developer",
-  tagline: "科研与工程交叉：可复现、可观测、可维护。",
+  title: "Journal · Plans · Life",
+  tagline: "记录日常，整理计划，慢慢生活。",
   intro:
-    "关注 ML Systems / Developer Tooling / Web 可视化等交叉方向，偏好把研究与工程问题拆成可度量指标与可复现流程，并将想法快速落地为可交付的原型与产品。",
+    "这里用来记录日记、今天的工作计划，以及一些随手的想法与项目。内容会持续更新，也尽量保持简单、清爽。",
   location: "China",
   timezone: "UTC+8",
   email: "yu3hen@126.com",
