@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import "./globals.css";
 import { ThemeScript } from "./theme-script";
+import { shortVersion } from "./version";
 
 export const dynamic = "force-static";
 
@@ -21,11 +22,11 @@ const metadataBase = (() => {
 
 export const metadata: Metadata = {
   metadataBase,
-  title: "徐煜辰 | 科研技术向个人主页",
-  description: "科研与工程交叉方向的个人主页：研究方向、开源项目、论文出版、履历与联系方式。",
+  title: "迷亭桑的梦想生活",
+  description: "记录与发布：日记、计划、研究与项目。简单、清爽、可持续更新。",
   openGraph: {
-    title: "徐煜辰 | 科研技术向个人主页",
-    description: "科研与工程交叉方向的个人主页：研究方向、开源项目、论文出版、履历与联系方式。",
+    title: "迷亭桑的梦想生活",
+    description: "记录与发布：日记、计划、研究与项目。",
     type: "website",
     images: [{ url: "/og.svg" }],
   },
@@ -36,11 +37,15 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const ver = shortVersion() || "dev";
   return (
     <html lang="zh-CN" className="h-full antialiased" suppressHydrationWarning>
       <body className="min-h-full flex flex-col">
         <ThemeScript />
-        {children}
+        <div className="flex-1">{children}</div>
+        <footer className="py-6 text-center text-xs text-[color:var(--muted)]">
+          版本 {ver}
+        </footer>
       </body>
     </html>
   );

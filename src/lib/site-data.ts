@@ -68,7 +68,7 @@ const projects: Project[] = [
 ];
 
 export const site = {
-  name: "徐煜辰",
+  name: "迷亭桑的梦想生活",
   title: "Research Engineer · Full-Stack Developer",
   tagline: "科研与工程交叉：可复现、可观测、可维护。",
   intro:
