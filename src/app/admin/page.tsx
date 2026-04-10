@@ -360,7 +360,70 @@ export default function AdminPage() {
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[0.8fr_1.2fr]">
+        <div className="card p-5">
+          <div className="flex items-center justify-between">
+            <div className="text-base font-semibold tracking-tight">笔记列表</div>
+            <div className="text-xs text-[color:var(--muted)]">
+              {notes.length} 条
+            </div>
+          </div>
+          <div className="mt-4 flex flex-col gap-2">
+            {notes.length ? (
+              notes.map((n) => (
+                <div key={n.id} className="card p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-semibold tracking-tight">
+                        {n.title}
+                      </div>
+                      <div className="mt-1 text-xs text-[color:var(--muted)]">
+                        {n.visibility} · {new Date(n.createdAt).toLocaleString()}
+                      </div>
+                      {n.tags.length ? (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {n.tags.map((t) => (
+                            <span
+                              key={t}
+                              className="rounded-full border border-[color:var(--border)] bg-[color:color-mix(in_srgb,var(--panel)_70%,transparent)] px-3 py-1 text-xs font-mono text-[color:var(--muted)]"
+                            >
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                    <div className="flex flex-row gap-2 whitespace-nowrap">
+                      <button
+                        className="button"
+                        onClick={() => {
+                          window.open(`/admin/notes/${n.id}/read`, "_blank", "noopener,noreferrer");
+                        }}
+                      >
+                        查看
+                      </button>
+                      <button
+                        className="button"
+                        onClick={() => setEditingId(n.id)}
+                      >
+                        编辑
+                      </button>
+                      <button
+                        className="button"
+                        onClick={() => deleteNote(n.id)}
+                      >
+                        删除
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-sm text-[color:var(--muted)]">暂无笔记</div>
+            )}
+          </div>
+        </div>
+
         {tab === "notes" ? (
           <div className="card p-5">
             <div className="text-base font-semibold tracking-tight">
@@ -530,69 +593,6 @@ export default function AdminPage() {
             </div>
           </div>
         )}
-
-        <div className="card p-5">
-          <div className="flex items-center justify-between">
-            <div className="text-base font-semibold tracking-tight">笔记列表</div>
-            <div className="text-xs text-[color:var(--muted)]">
-              {notes.length} 条
-            </div>
-          </div>
-          <div className="mt-4 flex flex-col gap-2">
-            {notes.length ? (
-              notes.map((n) => (
-                <div key={n.id} className="card p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="text-sm font-semibold tracking-tight">
-                        {n.title}
-                      </div>
-                      <div className="mt-1 text-xs text-[color:var(--muted)]">
-                        {n.visibility} · {new Date(n.createdAt).toLocaleString()}
-                      </div>
-                      {n.tags.length ? (
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {n.tags.map((t) => (
-                            <span
-                              key={t}
-                              className="rounded-full border border-[color:var(--border)] bg-[color:color-mix(in_srgb,var(--panel)_70%,transparent)] px-3 py-1 text-xs font-mono text-[color:var(--muted)]"
-                            >
-                              {t}
-                            </span>
-                          ))}
-                        </div>
-                      ) : null}
-                    </div>
-                    <div className="flex flex-row flex-wrap gap-2">
-                      <button
-                        className="button"
-                        onClick={() => {
-                          window.open(`/admin/notes/${n.id}/read`, "_blank", "noopener,noreferrer");
-                        }}
-                      >
-                        查看
-                      </button>
-                      <button
-                        className="button"
-                        onClick={() => setEditingId(n.id)}
-                      >
-                        编辑
-                      </button>
-                      <button
-                        className="button"
-                        onClick={() => deleteNote(n.id)}
-                      >
-                        删除
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-sm text-[color:var(--muted)]">暂无笔记</div>
-            )}
-          </div>
-        </div>
       </div>
     </div>
   );
