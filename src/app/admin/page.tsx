@@ -478,6 +478,20 @@ export default function AdminPage() {
                   >
                     编辑
                   </button>
+                  <button
+                    className="button"
+                    onClick={() => {
+                      setEditingId("");
+                      setNoteTitle("");
+                      setNoteVisibility("public");
+                      setNoteTags("");
+                      setNoteContent("");
+                      setViewingId("");
+                      setTab("notes");
+                    }}
+                  >
+                    新增文章
+                  </button>
                   <button className="button" onClick={() => setViewingId("")}>
                     关闭
                   </button>
@@ -492,8 +506,38 @@ export default function AdminPage() {
             </div>
           ) : (
             <div className="card p-5">
-              <div className="text-base font-semibold tracking-tight">
-                {editingId ? "编辑笔记" : "新建笔记"}
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-base font-semibold tracking-tight">
+                  {editingId ? "编辑笔记" : noteVisibility === "public" ? "新建文章" : "新建笔记"}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    className="button"
+                    onClick={() => {
+                      setEditingId("");
+                      setNoteTitle("");
+                      setNoteVisibility("private");
+                      setNoteTags("");
+                      setNoteContent("");
+                      setViewingId("");
+                    }}
+                  >
+                    新增笔记
+                  </button>
+                  <button
+                    className="button"
+                    onClick={() => {
+                      setEditingId("");
+                      setNoteTitle("");
+                      setNoteVisibility("public");
+                      setNoteTags("");
+                      setNoteContent("");
+                      setViewingId("");
+                    }}
+                  >
+                    新增文章
+                  </button>
+                </div>
               </div>
               {editingNote ? (
                 <div className="mt-2 text-xs text-[color:var(--muted)]">

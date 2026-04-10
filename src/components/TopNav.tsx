@@ -1,6 +1,7 @@
 "use client";
 
 import { Menu, X } from "lucide-react";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { useActiveSection } from "@/hooks/useActiveSection";
@@ -63,6 +64,12 @@ export function TopNav() {
               </button>
             );
           })}
+          <Link
+            href="/posts"
+            className="px-3 py-2 text-sm rounded-full transition-colors border border-transparent text-[color:var(--muted)] hover:text-[color:var(--text)] hover:bg-[color:var(--panel)]"
+          >
+            文章
+          </Link>
           <div className="w-2" />
           <ThemeToggle />
         </nav>
