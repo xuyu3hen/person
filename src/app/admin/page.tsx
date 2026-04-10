@@ -75,9 +75,14 @@ export default function AdminPage() {
   const [loginPassword, setLoginPassword] = useState("");
 
   const [editingId, setEditingId] = useState<string>("");
+  const [viewingId, setViewingId] = useState<string>("");
   const editingNote = useMemo(
     () => notes.find((n) => n.id === editingId) ?? null,
     [editingId, notes]
+  );
+  const viewingNote = useMemo(
+    () => notes.find((n) => n.id === viewingId) ?? null,
+    [viewingId, notes]
   );
 
   const [noteTitle, setNoteTitle] = useState("");
@@ -114,6 +119,15 @@ export default function AdminPage() {
     setNoteTags(editingNote.tags.join(", "));
     setNoteContent(editingNote.content);
   }, [editingNote]);
+
+  useEffect(() => {
+    if (!viewingId) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setViewingId("");
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [viewingId]);
 
   async function refreshAll() {
     setStatus("同步中…");
@@ -153,6 +167,7 @@ export default function AdminPage() {
       setNotes([]);
       setPlans([]);
       setEditingId("");
+      setViewingId("");
       setStatus("已退出");
     }
   }
@@ -207,6 +222,9 @@ export default function AdminPage() {
         setNoteVisibility("private");
         setNoteTags("");
         setNoteContent("");
+      }
+      if (viewingId === id) {
+        setViewingId("");
       }
       await refreshAll();
       setStatus("已删除");
@@ -371,7 +389,25 @@ export default function AdminPage() {
           <div className="mt-4 flex flex-col gap-2">
             {notes.length ? (
               notes.map((n) => (
-                <div key={n.id} className="card p-4">
+                <div
+                  key={n.id}
+                  className="card p-4 cursor-pointer"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => {
+                    setTab("notes");
+                    setEditingId("");
+                    setViewingId(n.id);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setTab("notes");
+                      setEditingId("");
+                      setViewingId(n.id);
+                    }
+                  }}
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="text-sm font-semibold tracking-tight">
@@ -396,21 +432,21 @@ export default function AdminPage() {
                     <div className="flex flex-row gap-2 whitespace-nowrap">
                       <button
                         className="button"
-                        onClick={() => {
-                          window.open(`/admin/notes/${n.id}/read`, "_blank", "noopener,noreferrer");
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingId(n.id);
+                          setTab("notes");
+                          setViewingId("");
                         }}
-                      >
-                        查看
-                      </button>
-                      <button
-                        className="button"
-                        onClick={() => setEditingId(n.id)}
                       >
                         编辑
                       </button>
                       <button
                         className="button"
-                        onClick={() => deleteNote(n.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteNote(n.id);
+                        }}
                       >
                         删除
                       </button>
@@ -425,71 +461,102 @@ export default function AdminPage() {
         </div>
 
         {tab === "notes" ? (
-          <div className="card p-5">
-            <div className="text-base font-semibold tracking-tight">
-              {editingId ? "编辑笔记" : "新建笔记"}
-            </div>
-            {editingNote ? (
-              <div className="mt-2 text-xs text-[color:var(--muted)]">
-                创建于 {new Date(editingNote.createdAt).toLocaleString()} · 更新于{" "}
-                {new Date(editingNote.updatedAt).toLocaleString()}
+          viewingNote ? (
+            <div className="card p-5">
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-base font-semibold tracking-tight">
+                  查看笔记
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    className="button"
+                    onClick={() => {
+                      setEditingId(viewingNote.id);
+                      setViewingId("");
+                      setTab("notes");
+                    }}
+                  >
+                    编辑
+                  </button>
+                  <button className="button" onClick={() => setViewingId("")}>
+                    关闭
+                  </button>
+                </div>
               </div>
-            ) : (
-              <div className="mt-2 text-xs text-[color:var(--muted)]">
-                选择私有或可展示（public）。
+              <div className="sr-only">{viewingNote.title}</div>
+              <div className="mt-4 rounded-2xl border border-[color:var(--border)] bg-[color:var(--panel)] p-4">
+                <pre className="whitespace-pre-wrap break-words text-[15px] leading-[1.7]">
+                  {viewingNote.content}
+                </pre>
               </div>
-            )}
-
-            <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2">
-              <input
-                className="rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3"
-                value={noteTitle}
-                onChange={(e) => setNoteTitle(e.target.value)}
-                placeholder="标题"
-              />
-              <select
-                className="rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3"
-                value={noteVisibility}
-                onChange={(e) =>
-                  setNoteVisibility(e.target.value as NoteVisibility)
-                }
-              >
-                <option value="private">私有</option>
-                <option value="public">可展示</option>
-              </select>
-              <input
-                className="md:col-span-2 rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3"
-                value={noteTags}
-                onChange={(e) => setNoteTags(e.target.value)}
-                placeholder="标签（逗号分隔）"
-              />
             </div>
+          ) : (
+            <div className="card p-5">
+              <div className="text-base font-semibold tracking-tight">
+                {editingId ? "编辑笔记" : "新建笔记"}
+              </div>
+              {editingNote ? (
+                <div className="mt-2 text-xs text-[color:var(--muted)]">
+                  创建于 {new Date(editingNote.createdAt).toLocaleString()} · 更新于{" "}
+                  {new Date(editingNote.updatedAt).toLocaleString()}
+                </div>
+              ) : (
+                <div className="mt-2 text-xs text-[color:var(--muted)]">
+                  选择私有或可展示（public）。
+                </div>
+              )}
 
-            <textarea
-              className="mt-3 w-full min-h-[280px] rounded-2xl border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3"
-              value={noteContent}
-              onChange={(e) => setNoteContent(e.target.value)}
-              placeholder="内容（支持 Markdown 文本）…"
-            />
+              <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2">
+                <input
+                  className="rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3"
+                  value={noteTitle}
+                  onChange={(e) => setNoteTitle(e.target.value)}
+                  placeholder="标题"
+                />
+                <select
+                  className="rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3"
+                  value={noteVisibility}
+                  onChange={(e) =>
+                    setNoteVisibility(e.target.value as NoteVisibility)
+                  }
+                >
+                  <option value="private">私有</option>
+                  <option value="public">可展示</option>
+                </select>
+                <input
+                  className="md:col-span-2 rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3"
+                  value={noteTags}
+                  onChange={(e) => setNoteTags(e.target.value)}
+                  placeholder="标签（逗号分隔）"
+                />
+              </div>
 
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              <button className="button buttonPrimary" onClick={saveNote}>
-                保存
-              </button>
-              <button
-                className="button"
-                onClick={() => {
-                  setEditingId("");
-                  setNoteTitle("");
-                  setNoteVisibility("private");
-                  setNoteTags("");
-                  setNoteContent("");
-                }}
-              >
-                清空
-              </button>
+              <textarea
+                className="mt-3 w-full min-h-[280px] rounded-2xl border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3"
+                value={noteContent}
+                onChange={(e) => setNoteContent(e.target.value)}
+                placeholder="内容（支持 Markdown 文本）…"
+              />
+
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <button className="button buttonPrimary" onClick={saveNote}>
+                  保存
+                </button>
+                <button
+                  className="button"
+                  onClick={() => {
+                    setEditingId("");
+                    setNoteTitle("");
+                    setNoteVisibility("private");
+                    setNoteTags("");
+                    setNoteContent("");
+                  }}
+                >
+                  清空
+                </button>
+              </div>
             </div>
-          </div>
+          )
         ) : (
           <div className="card p-5">
             <div className="text-base font-semibold tracking-tight">
@@ -594,6 +661,7 @@ export default function AdminPage() {
           </div>
         )}
       </div>
+
     </div>
   );
 }
