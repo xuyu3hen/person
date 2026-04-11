@@ -61,6 +61,16 @@ export async function ensureSchema() {
     `;
 
     await sql`
+      CREATE TABLE IF NOT EXISTS journal_dailies (
+        id TEXT PRIMARY KEY,
+        date DATE UNIQUE NOT NULL,
+        weight FLOAT,
+        created_at TIMESTAMPTZ NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL
+      );
+    `;
+
+    await sql`
       CREATE INDEX IF NOT EXISTS journal_notes_visibility_created_at_idx
       ON journal_notes (visibility, created_at DESC);
     `;

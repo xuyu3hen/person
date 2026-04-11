@@ -25,6 +25,14 @@ type Plan = {
   updatedAt: string;
 };
 
+type Daily = {
+  id: string;
+  date: string;
+  weight: number | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
     ...init,
@@ -67,10 +75,11 @@ export default function AdminPage() {
   const [checking, setChecking] = useState(true);
   const [authed, setAuthed] = useState(false);
   const [status, setStatus] = useState<string>("");
-  const [tab, setTab] = useState<"notes" | "plans">("notes");
+  const [tab, setTab] = useState<"notes" | "plans" | "daily">("notes");
 
   const [notes, setNotes] = useState<Note[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [daily, setDaily] = useState<Daily | null>(null);
 
   const [loginPassword, setLoginPassword] = useState("");
 
@@ -96,6 +105,8 @@ export default function AdminPage() {
   const [planEnd, setPlanEnd] = useState("10:00");
   const [planTitle, setPlanTitle] = useState("");
 
+  const [dailyWeight, setDailyWeight] = useState("");
+
   useEffect(() => {
     (async () => {
       try {
@@ -111,6 +122,14 @@ export default function AdminPage() {
     if (!authed) return;
     refreshAll();
   }, [authed]);
+
+  useEffect(() => {
+    if (daily) {
+      setDailyWeight(daily.weight ? String(daily.weight) : "");
+    } else {
+      setDailyWeight("");
+    }
+  }, [daily]);
 
   useEffect(() => {
     if (!editingNote) return;
@@ -132,12 +151,14 @@ export default function AdminPage() {
   async function refreshAll() {
     setStatus("同步中…");
     try {
-      const [ns, ps] = await Promise.all([
+      const [ns, ps, d] = await Promise.all([
         api<Note[]>("/api/admin/notes"),
         api<Plan[]>("/api/admin/plans/today"),
+        api<Daily | null>(`/api/admin/dailies?date=${todayYmd()}`),
       ]);
       setNotes(ns);
       setPlans(ps);
+      setDaily(d);
       setStatus("已同步");
     } catch (e: unknown) {
       setStatus(`同步失败：${errorMessage(e)}`);
@@ -289,6 +310,23 @@ export default function AdminPage() {
     }
   }
 
+  async function saveDaily() {
+    setStatus("保存中…");
+    try {
+      await api(`/api/admin/dailies`, {
+        method: "POST",
+        body: JSON.stringify({
+          date: todayYmd(),
+          weight: dailyWeight ? Number(dailyWeight) : null,
+        }),
+      });
+      await refreshAll();
+      setStatus("今日数据已保存");
+    } catch (e: unknown) {
+      setStatus(`保存失败：${errorMessage(e)}`);
+    }
+  }
+
   if (checking) {
     return (
       <div className="container py-16">
@@ -371,6 +409,17 @@ export default function AdminPage() {
           onClick={() => setTab("plans")}
         >
           今日计划
+        </button>
+        <button
+          className={
+            "button " +
+            (tab === "daily"
+              ? "buttonPrimary"
+              : "")
+          }
+          onClick={() => setTab("daily")}
+        >
+          每日记录
         </button>
         <div className="flex-1" />
         <div className="text-sm text-[color:var(--muted)] self-center">
@@ -701,6 +750,30 @@ export default function AdminPage() {
                   今天还没有计划。
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {tab === "daily" && (
+          <div className="card p-6 flex flex-col gap-5">
+            <div className="text-lg font-semibold tracking-tight">每日记录 ({todayYmd()})</div>
+            
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium">体重 (kg)</label>
+              <input
+                className="rounded-xl border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3"
+                type="number"
+                step="0.1"
+                placeholder="例如：65.5"
+                value={dailyWeight}
+                onChange={(e) => setDailyWeight(e.target.value)}
+              />
+            </div>
+
+            <div className="mt-4 flex gap-3">
+              <button className="button buttonPrimary flex-1" onClick={saveDaily}>
+                保存今日记录
+              </button>
             </div>
           </div>
         )}
