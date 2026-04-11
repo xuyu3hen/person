@@ -115,10 +115,10 @@ export function DailyChart({ data }: { data: DailyData[] }) {
                 fontSize: "14px"
               }}
               labelStyle={{ fontWeight: 600, marginBottom: "8px", color: "var(--fg)" }}
-              formatter={(value: number, name: string) => {
+              formatter={(value: any, name: any) => {
                 if (name === "weight") return [value ? `${value} kg` : "未记录", "体重"];
                 if (name === "masturbationValue") return [value === 1 ? "是" : "否", "是否自慰"];
-                return [value, name];
+                return [value, String(name)];
               }}
               labelFormatter={(label) => `日期: ${label}`}
             />
