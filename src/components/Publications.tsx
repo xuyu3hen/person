@@ -39,8 +39,8 @@ function BibTeXBlock(props: { bibtex: string }) {
   );
 }
 
-export function Publications() {
-  const pubs = [...site.publications].sort((a, b) => b.year - a.year);
+export function Publications({ papers }: { papers?: { year: number; title: string; authors: string; venue: string; pdfUrl?: string; bibtex?: string; doiUrl?: string; codeUrl?: string; }[] }) {
+  const pubs = (papers || [...site.publications]).sort((a, b) => b.year - a.year);
 
   return (
     <section id="publications" className="section">

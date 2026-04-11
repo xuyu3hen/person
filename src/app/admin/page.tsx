@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { DailyChart } from "@/components/DailyChart";
 import { BodyShapeTab } from "@/components/admin/BodyShapeTab";
+import { PapersTab } from "@/components/admin/PapersTab";
 
 import {
   DndContext,
@@ -51,6 +52,18 @@ type Daily = {
   date: string;
   weight: number | null;
   masturbated: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type Paper = {
+  id: string;
+  title: string;
+  authors: string;
+  year: number;
+  journal: string;
+  pdfUrl: string | null;
+  bibtex: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -174,12 +187,13 @@ export default function AdminPage() {
   const [checking, setChecking] = useState(true);
   const [authed, setAuthed] = useState(false);
   const [status, setStatus] = useState<string>("");
-  const [tab, setTab] = useState<"notes" | "plans" | "daily" | "bodyshape">("notes");
+  const [tab, setTab] = useState<"notes" | "plans" | "daily" | "bodyshape" | "papers">("notes");
 
   const [notes, setNotes] = useState<Note[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [daily, setDaily] = useState<Daily | null>(null);
   const [dailyHistory, setDailyHistory] = useState<Daily[]>([]);
+  const [papers, setPapers] = useState<Paper[]>([]);
 
   const [loginPassword, setLoginPassword] = useState("");
 
@@ -282,16 +296,18 @@ export default function AdminPage() {
   async function refreshAll() {
     setStatus("同步中…");
     try {
-      const [ns, ps, d, dh] = await Promise.all([
+      const [ns, ps, d, dh, p] = await Promise.all([
         api<Note[]>("/api/admin/notes/"),
         api<Plan[]>("/api/admin/plans/today/"),
         api<Daily | null>(`/api/admin/dailies/?date=${dailyDate}`),
         api<Daily[]>(`/api/admin/dailies/?date=all`),
+        api<Paper[]>("/api/admin/papers/"),
       ]);
       setNotes(ns);
       setPlans(ps);
       setDaily(d);
       setDailyHistory(dh);
+      setPapers(p);
       setStatus("已同步");
     } catch (e: unknown) {
       setStatus(`同步失败：${errorMessage(e)}`);
@@ -617,6 +633,12 @@ export default function AdminPage() {
             onClick={() => setTab("bodyshape")}
           >
             体型记录
+          </button>
+          <button
+            className={`text-left px-4 py-3 rounded-xl transition-colors ${tab === "papers" ? "bg-[color:var(--accent)] text-white" : "hover:bg-[color:var(--panel)]"}`}
+            onClick={() => setTab("papers")}
+          >
+            论文管理
           </button>
         </div>
         <div className="mt-auto pt-4 border-t border-[color:var(--border)] flex flex-col gap-3">
@@ -1042,6 +1064,7 @@ export default function AdminPage() {
         )}
 
         {tab === "bodyshape" && <BodyShapeTab />}
+        {tab === "papers" && <PapersTab />}
       </main>
     </div>
   );

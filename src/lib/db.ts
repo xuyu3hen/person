@@ -97,6 +97,25 @@ export async function ensureSchema() {
       CREATE INDEX IF NOT EXISTS journal_dailies_date_idx
       ON journal_dailies (date DESC);
     `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS journal_papers (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        authors TEXT NOT NULL,
+        year INTEGER NOT NULL,
+        journal TEXT NOT NULL,
+        pdf_url TEXT,
+        bibtex TEXT,
+        created_at TIMESTAMPTZ NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL
+      );
+    `;
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS journal_papers_year_idx
+      ON journal_papers (year DESC);
+    `;
   })();
   return schemaEnsured;
 }
