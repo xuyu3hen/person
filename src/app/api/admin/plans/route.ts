@@ -76,10 +76,10 @@ export async function GET(req: NextRequest) {
     }
 
     const result = await sql`
-      SELECT id, date, start_time, end_time, title, done, created_at, updated_at
+      SELECT id, date, start_time, end_time, title, done, sort_order, created_at, updated_at
       FROM journal_plans
       WHERE date = ${date}::date
-      ORDER BY start_time NULLS LAST, created_at DESC;
+      ORDER BY sort_order ASC, start_time NULLS LAST, created_at DESC;
     `;
 
     const plans = result.rows.map((r) => {
@@ -91,6 +91,7 @@ export async function GET(req: NextRequest) {
         endTime: row.end_time ? String(row.end_time).slice(0, 5) : "",
         title: String(row.title),
         done: row.done === true,
+        sortOrder: Number(row.sort_order || 0),
         createdAt: new Date(String(row.created_at)).toISOString(),
         updatedAt: new Date(String(row.updated_at)).toISOString(),
       };
@@ -106,6 +107,19 @@ export async function POST(req: NextRequest) {
   try {
     assertAdmin(req);
     const body = await req.json().catch(() => null);
+    
+    // Check if this is a bulk update request for sort_order
+    if (Array.isArray(body)) {
+      await ensureSchema();
+      const sql = getSql();
+      const updates = body.map((item: any, index: number) => {
+        if (!item.id || typeof item.id !== 'string') return Promise.resolve();
+        return sql`UPDATE journal_plans SET sort_order = ${index} WHERE id = ${item.id}`;
+      });
+      await Promise.all(updates);
+      return NextResponse.json({ ok: true });
+    }
+
     const cleaned = sanitizePlan(body);
     await ensureSchema();
     const sql = getSql();

@@ -3,6 +3,24 @@
 import { useEffect, useMemo, useState } from "react";
 import { DailyChart } from "@/components/DailyChart";
 
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
 type NoteVisibility = "private" | "public";
 
 type Note = {
@@ -22,6 +40,7 @@ type Plan = {
   endTime: string;
   title: string;
   done: boolean;
+  sortOrder: number;
   createdAt: string;
   updatedAt: string;
 };
@@ -71,6 +90,83 @@ function todayYmd() {
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
+}
+
+function SortablePlanItem({
+  p,
+  updatePlan,
+  deletePlan,
+}: {
+  p: Plan;
+  updatePlan: (p: Plan, patch: Partial<Plan>) => void;
+  deletePlan: (id: string) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
+    id: p.id,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="card p-4 relative group">
+      <div 
+        {...attributes} 
+        {...listeners} 
+        className="absolute left-2 top-1/2 -translate-y-1/2 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity text-[color:var(--muted)] hover:text-[color:var(--text)] p-2"
+        title="拖拽排序"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+      </div>
+      <div className="flex items-start justify-between gap-3 pl-6">
+        <div className="flex items-start gap-3">
+          <input
+            className="mt-1"
+            type="checkbox"
+            checked={p.done}
+            onChange={(e) => updatePlan(p, { done: e.target.checked })}
+          />
+          <div>
+            <div className={`text-sm font-semibold tracking-tight ${p.done ? 'line-through text-[color:var(--muted)]' : ''}`}>
+              {p.title}
+            </div>
+            <div className="mt-1 text-xs text-[color:var(--muted)]">
+              {p.startTime}
+              {p.endTime ? ` - ${p.endTime}` : ""}
+            </div>
+          </div>
+        </div>
+        <button className="button" onClick={() => deletePlan(p.id)}>
+          删除
+        </button>
+      </div>
+
+      <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-[140px_140px_1fr_auto] pl-6">
+        <input
+          className="rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-2"
+          type="time"
+          value={p.startTime}
+          onChange={(e) => updatePlan(p, { startTime: e.target.value })}
+        />
+        <input
+          className="rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-2"
+          type="time"
+          value={p.endTime}
+          onChange={(e) => updatePlan(p, { endTime: e.target.value })}
+        />
+        <input
+          className="rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-2"
+          value={p.title}
+          onChange={(e) => updatePlan(p, { title: e.target.value })}
+        />
+        <div className="text-xs text-[color:var(--muted)] self-center">
+          {p.done ? "已完成" : "进行中"}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function AdminPage() {
@@ -318,6 +414,12 @@ export default function AdminPage() {
 
   async function updatePlan(plan: Plan, patch: Partial<Plan>) {
     const next = { ...plan, ...patch };
+    
+    // Optimistic UI update for 'done' status
+    if ('done' in patch) {
+      setPlans(prev => prev.map(p => p.id === plan.id ? next : p));
+    }
+    
     setStatus("保存中…");
     try {
       await api(`/api/admin/plans/${encodeURIComponent(plan.id)}/`, {
@@ -330,10 +432,53 @@ export default function AdminPage() {
           done: next.done,
         }),
       });
+      // If marked as done, also add it to daily history note or summary if needed
+      // Currently, it stays in plans until next day. We refresh to keep in sync.
       await refreshAll();
       setStatus("已保存");
     } catch (e: unknown) {
       setStatus(`保存失败：${errorMessage(e)}`);
+      await refreshAll(); // revert optimistic update on error
+    }
+  }
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  async function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setPlans((items) => {
+        const oldIndex = items.findIndex((i) => i.id === active.id);
+        const newIndex = items.findIndex((i) => i.id === over.id);
+        const newItems = arrayMove(items, oldIndex, newIndex);
+        
+        // Optimistically update order
+        const updates = newItems.map((item, index) => ({
+          id: item.id,
+          sortOrder: index
+        }));
+        
+        // Send bulk update to server
+        api("/api/admin/plans/", {
+          method: "POST",
+          body: JSON.stringify(updates),
+        }).catch((e) => {
+          setStatus(`排序失败：${errorMessage(e)}`);
+          refreshAll();
+        });
+        
+        return newItems;
+      });
     }
   }
 
@@ -354,7 +499,27 @@ export default function AdminPage() {
   const [isSavingDaily, setIsSavingDaily] = useState(false);
   const [isSavingNote, setIsSavingNote] = useState(false);
 
-  async function saveDaily() {
+  const [dailyViewMode, setDailyViewMode] = useState<"list" | "calendar">("list");
+
+  function exportDailyMarkdown() {
+    const lines = ["# 每日记录导出\n"];
+    dailyHistory.forEach(h => {
+      lines.push(`## ${h.date}`);
+      lines.push(`- 体重: ${h.weight !== null ? h.weight + ' kg' : '未记录'}`);
+      lines.push(`- 状态: ${h.masturbated ? '💦 已撸管' : '✨ 禁欲中'}`);
+      lines.push("");
+    });
+    
+    const blob = new Blob([lines.join("\n")], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `journal-dailies-${todayYmd()}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
     if (isSavingDaily) return;
     setIsSavingDaily(true);
     setStatus("保存中…");
@@ -727,63 +892,13 @@ export default function AdminPage() {
 
             <div className="mt-5 flex flex-col gap-2">
               {plans.length ? (
-                plans.map((p) => (
-                  <div key={p.id} className="card p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-3">
-                        <input
-                          className="mt-1"
-                          type="checkbox"
-                          checked={p.done}
-                          onChange={(e) =>
-                            updatePlan(p, { done: e.target.checked })
-                          }
-                        />
-                        <div>
-                          <div className="text-sm font-semibold tracking-tight">
-                            {p.title}
-                          </div>
-                          <div className="mt-1 text-xs text-[color:var(--muted)]">
-                            {p.startTime}
-                            {p.endTime ? ` - ${p.endTime}` : ""}
-                          </div>
-                        </div>
-                      </div>
-                      <button className="button" onClick={() => deletePlan(p.id)}>
-                        删除
-                      </button>
-                    </div>
-
-                    <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-[140px_140px_1fr_auto]">
-                      <input
-                        className="rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-2"
-                        type="time"
-                        value={p.startTime}
-                        onChange={(e) =>
-                          updatePlan(p, { startTime: e.target.value })
-                        }
-                      />
-                      <input
-                        className="rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-2"
-                        type="time"
-                        value={p.endTime}
-                        onChange={(e) =>
-                          updatePlan(p, { endTime: e.target.value })
-                        }
-                      />
-                      <input
-                        className="rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-2"
-                        value={p.title}
-                        onChange={(e) =>
-                          updatePlan(p, { title: e.target.value })
-                        }
-                      />
-                      <div className="text-xs text-[color:var(--muted)] self-center">
-                        {p.done ? "已完成" : "进行中"}
-                      </div>
-                    </div>
-                  </div>
-                ))
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                  <SortableContext items={plans} strategy={verticalListSortingStrategy}>
+                    {plans.map((p) => (
+                      <SortablePlanItem key={p.id} p={p} updatePlan={updatePlan} deletePlan={deletePlan} />
+                    ))}
+                  </SortableContext>
+                </DndContext>
               ) : (
                 <div className="text-sm text-[color:var(--muted)]">
                   今天还没有计划。
@@ -850,22 +965,71 @@ export default function AdminPage() {
             </div>
 
             <hr className="my-4 border-[color:var(--border)]" />
-            <div className="text-md font-semibold tracking-tight">历史记录</div>
-            <div className="flex flex-col gap-3">
-              {dailyHistory.length > 0 ? (
-                dailyHistory.map((h) => (
-                  <div key={h.id} className="flex items-center justify-between p-4 border border-[color:var(--border)] rounded-xl bg-[color:color-mix(in_srgb,var(--panel)_50%,transparent)]">
-                    <div className="font-mono text-sm">{h.date}</div>
-                    <div className="text-sm font-medium flex gap-4">
-                      <span>{h.weight !== null ? `${h.weight} kg` : "体重未记录"}</span>
-                      <span>{h.masturbated ? "💦 已撸管" : "✨ 禁欲中"}</span>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-sm text-[color:var(--muted)]">暂无历史记录</div>
-              )}
+            <div className="flex items-center justify-between">
+              <div className="text-md font-semibold tracking-tight">历史记录</div>
+              <div className="flex items-center gap-2">
+                <button 
+                  className={`text-xs px-2 py-1 rounded transition-colors ${dailyViewMode === "list" ? "bg-[color:var(--accent)] text-white" : "bg-[color:var(--panel)] text-[color:var(--muted)]"}`}
+                  onClick={() => setDailyViewMode("list")}
+                >
+                  列表
+                </button>
+                <button 
+                  className={`text-xs px-2 py-1 rounded transition-colors ${dailyViewMode === "calendar" ? "bg-[color:var(--accent)] text-white" : "bg-[color:var(--panel)] text-[color:var(--muted)]"}`}
+                  onClick={() => setDailyViewMode("calendar")}
+                >
+                  日历
+                </button>
+                <button 
+                  className="text-xs px-2 py-1 rounded bg-[color:var(--panel)] text-[color:var(--muted)] hover:text-[color:var(--text)] transition-colors border border-[color:var(--border)] ml-2"
+                  onClick={exportDailyMarkdown}
+                  title="导出为 Markdown"
+                >
+                  ↓ 导出 MD
+                </button>
+              </div>
             </div>
+            
+            {dailyViewMode === "list" ? (
+              <div className="flex flex-col gap-3">
+                {dailyHistory.length > 0 ? (
+                  dailyHistory.map((h) => (
+                    <div key={h.id} className="flex items-center justify-between p-4 border border-[color:var(--border)] rounded-xl bg-[color:color-mix(in_srgb,var(--panel)_50%,transparent)]">
+                      <div className="font-mono text-sm">{h.date}</div>
+                      <div className="text-sm font-medium flex gap-4">
+                        <span>{h.weight !== null ? `${h.weight} kg` : "体重未记录"}</span>
+                        <span>{h.masturbated ? "💦 已撸管" : "✨ 禁欲中"}</span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-sm text-[color:var(--muted)]">暂无历史记录</div>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-7 gap-2">
+                {["日", "一", "二", "三", "四", "五", "六"].map(day => (
+                  <div key={day} className="text-center text-xs font-medium text-[color:var(--muted)] pb-2">{day}</div>
+                ))}
+                {/* 简易日历视图，仅填充最近记录的占位格 */}
+                {Array.from({ length: new Date(dailyDate).getDay() }).map((_, i) => (
+                  <div key={`empty-${i}`} className="p-2 opacity-0" />
+                ))}
+                {dailyHistory.slice(0, 31).reverse().map((h) => (
+                  <div 
+                    key={h.id} 
+                    title={`${h.date}\n体重: ${h.weight || '-'}\n状态: ${h.masturbated ? '已撸管' : '禁欲中'}`}
+                    onClick={() => setDailyDate(h.date)}
+                    className={`aspect-square rounded-lg border p-1 flex flex-col items-center justify-center cursor-pointer transition-colors text-xs
+                      ${h.date === dailyDate ? 'border-[color:var(--accent)] bg-[color:color-mix(in_srgb,var(--accent)_10%,transparent)]' : 'border-[color:var(--border)] bg-[color:var(--panel)] hover:bg-[color:color-mix(in_srgb,var(--panel)_80%,transparent)]'}
+                    `}
+                  >
+                    <span className="font-mono opacity-60 mb-1">{h.date.slice(8, 10)}</span>
+                    <span>{h.masturbated ? "💦" : "✨"}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
