@@ -72,7 +72,7 @@ export async function GET(req: NextRequest) {
       updatedAt: new Date(String(row.updated_at)).toISOString(),
     });
   } catch (e: unknown) {
-    const status = e && typeof e === "object" && "status" in e ? Number((e as any).status) : 500;
+    const status = e && typeof e === "object" && "status" in e ? Number((e as Record<string, unknown>).status) : 500;
     return NextResponse.json({ error: e instanceof Error ? e.message : "Internal error" }, { status });
   }
 }
@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
       updatedAt: new Date(String(row.updated_at)).toISOString(),
     });
   } catch (e: unknown) {
-    const status = e && typeof e === "object" && "status" in e ? Number((e as any).status) : 500;
+    const status = e && typeof e === "object" && "status" in e ? Number((e as Record<string, unknown>).status) : 500;
     return NextResponse.json({ error: e instanceof Error ? e.message : "Internal error" }, { status });
   }
 }
