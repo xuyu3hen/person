@@ -234,6 +234,7 @@ export default function AdminPage() {
   useEffect(() => {
     if (!authed) return;
     refreshAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authed]);
 
   useEffect(() => {

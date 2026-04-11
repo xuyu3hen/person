@@ -2,14 +2,12 @@
 
 import { useMemo, useState } from "react";
 import {
-  LineChart,
   Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  BarChart,
   Bar,
   ComposedChart,
   Legend,

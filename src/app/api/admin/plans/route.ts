@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
     if (Array.isArray(body)) {
       await ensureSchema();
       const sql = getSql();
-      const updates = body.map((item: any, index: number) => {
+      const updates = body.map((item: Record<string, unknown>, index: number) => {
         if (!item.id || typeof item.id !== 'string') return Promise.resolve();
         return sql`UPDATE journal_plans SET sort_order = ${index} WHERE id = ${item.id}`;
       });
