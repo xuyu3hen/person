@@ -18,14 +18,17 @@ async function getPapers() {
       FROM journal_papers
       ORDER BY year DESC, created_at DESC;
     `;
-    return result.rows.map((r: Record<string, unknown>) => ({
-      year: Number(r.year),
-      title: String(r.title),
-      authors: String(r.authors),
-      venue: String(r.journal),
-      pdfUrl: r.pdf_url ? String(r.pdf_url) : undefined,
-      bibtex: r.bibtex ? String(r.bibtex) : undefined,
-    }));
+    return result.rows.map((row) => {
+      const r = row as Record<string, unknown>;
+      return {
+        year: Number(r.year),
+        title: String(r.title),
+        authors: String(r.authors),
+        venue: String(r.journal),
+        pdfUrl: r.pdf_url ? String(r.pdf_url) : undefined,
+        bibtex: r.bibtex ? String(r.bibtex) : undefined,
+      };
+    });
   } catch (e) {
     console.error("Failed to load papers:", e);
     return undefined;
