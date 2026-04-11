@@ -1,8 +1,8 @@
 "use client";
 
-import { Menu, X } from "lucide-react";
+import { Menu, X, Settings } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 import { useActiveSection } from "@/hooks/useActiveSection";
 import { nav } from "@/lib/site-data";
@@ -21,6 +21,14 @@ export function TopNav() {
   );
   const activeId = useActiveSection(ids);
   const [open, setOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/admin/session")
+      .then(r => r.json())
+      .then(d => setIsAdmin(d?.ok === true))
+      .catch(() => {});
+  }, []);
 
   function onPick(id: SectionId) {
     scrollToSection(id);
@@ -74,6 +82,17 @@ export function TopNav() {
           >
             文章
           </Link>
+          {isAdmin && (
+            <Link
+              href="/admin"
+              target="_blank"
+              className="flex items-center gap-1.5 px-3 py-2 text-sm rounded-full transition-colors border border-[color:color-mix(in_srgb,var(--accent)_35%,var(--border))] text-[color:var(--accent)] hover:bg-[color:color-mix(in_srgb,var(--accent)_18%,transparent)] ml-2"
+              title="进入后台"
+            >
+              <Settings size={14} />
+              后台
+            </Link>
+          )}
           <div className="w-2" />
           <ThemeToggle />
         </nav>

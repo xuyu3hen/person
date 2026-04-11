@@ -103,6 +103,18 @@ export default function AdminPage() {
   );
   const [noteTags, setNoteTags] = useState("");
   const [noteContent, setNoteContent] = useState("");
+  const [noteSearch, setNoteSearch] = useState("");
+
+  const filteredNotes = useMemo(() => {
+    if (!noteSearch.trim()) return notes;
+    const lower = noteSearch.toLowerCase();
+    return notes.filter(
+      (n) =>
+        n.title.toLowerCase().includes(lower) ||
+        n.content.toLowerCase().includes(lower) ||
+        n.tags.some((t) => t.toLowerCase().includes(lower))
+    );
+  }, [notes, noteSearch]);
 
   const [planStart, setPlanStart] = useState("09:00");
   const [planEnd, setPlanEnd] = useState("10:00");
@@ -465,16 +477,22 @@ export default function AdminPage() {
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[0.8fr_1.2fr]">
-        <div className="card p-5">
+        <div className="card p-5 flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <div className="text-base font-semibold tracking-tight">笔记列表</div>
             <div className="text-xs text-[color:var(--muted)]">
-              {notes.length} 条
+              {filteredNotes.length} / {notes.length} 条
             </div>
           </div>
-          <div className="mt-4 flex flex-col gap-2">
-            {notes.length ? (
-              notes.map((n) => (
+          <input
+            className="rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-2 text-sm"
+            placeholder="搜索笔记 (标题/内容/标签)..."
+            value={noteSearch}
+            onChange={(e) => setNoteSearch(e.target.value)}
+          />
+          <div className="flex flex-col gap-2">
+            {filteredNotes.length ? (
+              filteredNotes.map((n) => (
                 <div
                   key={n.id}
                   className="card p-4 cursor-pointer"
@@ -658,12 +676,14 @@ export default function AdminPage() {
                 />
               </div>
 
-              <textarea
-                className="mt-3 w-full min-h-[280px] rounded-2xl border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3"
-                value={noteContent}
-                onChange={(e) => setNoteContent(e.target.value)}
-                placeholder="内容（支持 Markdown 文本）…"
-              />
+              <div className="flex flex-col gap-3">
+                <textarea
+                  className="w-full min-h-[280px] rounded-2xl border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3"
+                  value={noteContent}
+                  onChange={(e) => setNoteContent(e.target.value)}
+                  placeholder="内容（支持 Markdown 文本）…"
+                />
+              </div>
 
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 <button className="button buttonPrimary" onClick={saveNote} disabled={isSavingNote}>
