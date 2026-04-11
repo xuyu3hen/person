@@ -421,10 +421,6 @@ export default function AdminPage() {
     <div className="container py-10">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <div className="text-xl font-semibold tracking-tight">Journal Admin</div>
-          <div className="mt-1 text-sm text-[color:var(--muted)]">
-            同域名 `/admin` · 笔记（私有/可展示）· 今日工作计划
-          </div>
         </div>
         <div className="flex items-center gap-2">
           <button className="button" onClick={refreshAll}>
