@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { DailyChart } from "@/components/DailyChart";
 
 type NoteVisibility = "private" | "public";
 
@@ -836,6 +837,12 @@ export default function AdminPage() {
               <button className="button buttonPrimary flex-1" onClick={saveDaily} disabled={isSavingDaily}>
                 {isSavingDaily ? "保存中..." : `保存 ${dailyDate} 的记录`}
               </button>
+            </div>
+
+            <hr className="my-4 border-[color:var(--border)]" />
+            <div className="text-md font-semibold tracking-tight">数据可视化</div>
+            <div className="border border-[color:var(--border)] rounded-xl bg-[color:color-mix(in_srgb,var(--panel)_50%,transparent)] p-4">
+              <DailyChart data={dailyHistory} />
             </div>
 
             <hr className="my-4 border-[color:var(--border)]" />
