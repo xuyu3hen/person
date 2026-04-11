@@ -520,6 +520,8 @@ export default function AdminPage() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   }
+
+  async function saveDaily() {
     if (isSavingDaily) return;
     setIsSavingDaily(true);
     setStatus("保存中…");
