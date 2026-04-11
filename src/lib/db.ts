@@ -65,10 +65,17 @@ export async function ensureSchema() {
         id TEXT PRIMARY KEY,
         date DATE UNIQUE NOT NULL,
         weight FLOAT,
+        masturbated BOOLEAN NOT NULL DEFAULT FALSE,
         created_at TIMESTAMPTZ NOT NULL,
         updated_at TIMESTAMPTZ NOT NULL
       );
     `;
+
+    try {
+      await sql`ALTER TABLE journal_dailies ADD COLUMN masturbated BOOLEAN NOT NULL DEFAULT FALSE`;
+    } catch {
+      // column likely exists, ignore
+    }
 
     await sql`
       CREATE INDEX IF NOT EXISTS journal_notes_visibility_created_at_idx
@@ -78,6 +85,10 @@ export async function ensureSchema() {
     await sql`
       CREATE INDEX IF NOT EXISTS journal_plans_date_start_time_idx
       ON journal_plans (date, start_time);
+    `;
+    await sql`
+      CREATE INDEX IF NOT EXISTS journal_dailies_date_idx
+      ON journal_dailies (date DESC);
     `;
   })();
   return schemaEnsured;

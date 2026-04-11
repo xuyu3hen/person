@@ -29,6 +29,7 @@ type Daily = {
   id: string;
   date: string;
   weight: number | null;
+  masturbated: boolean;
   createdAt: string;
   updatedAt: string;
 };
@@ -108,6 +109,7 @@ export default function AdminPage() {
 
   const [dailyDate, setDailyDate] = useState(todayYmd());
   const [dailyWeight, setDailyWeight] = useState("");
+  const [dailyMasturbated, setDailyMasturbated] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -142,8 +144,10 @@ export default function AdminPage() {
   useEffect(() => {
     if (daily) {
       setDailyWeight(daily.weight ? String(daily.weight) : "");
+      setDailyMasturbated(daily.masturbated);
     } else {
       setDailyWeight("");
+      setDailyMasturbated(false);
     }
   }, [daily]);
 
@@ -214,6 +218,8 @@ export default function AdminPage() {
   }
 
   async function saveNote() {
+    if (isSavingNote) return;
+    setIsSavingNote(true);
     setStatus("保存中…");
     try {
       const payload = {
@@ -247,6 +253,8 @@ export default function AdminPage() {
       setStatus("已保存");
     } catch (e: unknown) {
       setStatus(`保存失败：${errorMessage(e)}`);
+    } finally {
+      setIsSavingNote(false);
     }
   }
 
@@ -330,7 +338,12 @@ export default function AdminPage() {
     }
   }
 
+  const [isSavingDaily, setIsSavingDaily] = useState(false);
+  const [isSavingNote, setIsSavingNote] = useState(false);
+
   async function saveDaily() {
+    if (isSavingDaily) return;
+    setIsSavingDaily(true);
     setStatus("保存中…");
     try {
       await api(`/api/admin/dailies/`, {
@@ -338,12 +351,15 @@ export default function AdminPage() {
         body: JSON.stringify({
           date: dailyDate,
           weight: dailyWeight ? Number(dailyWeight) : null,
+          masturbated: dailyMasturbated,
         }),
       });
       await refreshAll();
       setStatus(`${dailyDate} 数据已保存`);
     } catch (e: unknown) {
       setStatus(`保存失败：${errorMessage(e)}`);
+    } finally {
+      setIsSavingDaily(false);
     }
   }
 
@@ -558,10 +574,11 @@ export default function AdminPage() {
                       setViewingId("");
                       setTab("notes");
                     }}
+                    disabled={isSavingNote}
                   >
                     新增文章
                   </button>
-                  <button className="button" onClick={() => setViewingId("")}>
+                  <button className="button" onClick={() => setViewingId("")} disabled={isSavingNote}>
                     关闭
                   </button>
                 </div>
@@ -581,31 +598,27 @@ export default function AdminPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <button
-                    className="button"
-                    onClick={() => {
-                      setEditingId("");
-                      setNoteTitle("");
-                      setNoteVisibility("private");
-                      setNoteTags("");
-                      setNoteContent("");
-                      setViewingId("");
-                    }}
+                    className="button buttonPrimary"
+                    onClick={saveNote}
+                    disabled={isSavingNote}
                   >
-                    新增笔记
+                    {isSavingNote ? "保存中..." : "保存"}
                   </button>
-                  <button
-                    className="button"
-                    onClick={() => {
-                      setEditingId("");
-                      setNoteTitle("");
-                      setNoteVisibility("public");
-                      setNoteTags("");
-                      setNoteContent("");
-                      setViewingId("");
-                    }}
-                  >
-                    新增文章
-                  </button>
+                  {editingId && (
+                    <button
+                      className="button"
+                      onClick={() => {
+                        setEditingId("");
+                        setNoteTitle("");
+                        setNoteVisibility("private");
+                        setNoteTags("");
+                        setNoteContent("");
+                      }}
+                      disabled={isSavingNote}
+                    >
+                      取消编辑
+                    </button>
+                  )}
                 </div>
               </div>
               {editingNote ? (
@@ -652,8 +665,8 @@ export default function AdminPage() {
               />
 
               <div className="mt-4 flex flex-wrap items-center gap-2">
-                <button className="button buttonPrimary" onClick={saveNote}>
-                  保存
+                <button className="button buttonPrimary" onClick={saveNote} disabled={isSavingNote}>
+                  {isSavingNote ? "保存中..." : "保存"}
                 </button>
                 <button
                   className="button"
@@ -664,6 +677,7 @@ export default function AdminPage() {
                     setNoteTags("");
                     setNoteContent("");
                   }}
+                  disabled={isSavingNote}
                 >
                   清空
                 </button>
@@ -805,9 +819,22 @@ export default function AdminPage() {
               />
             </div>
 
+            <div className="flex items-center gap-3 mt-2">
+              <input
+                type="checkbox"
+                id="masturbated-checkbox"
+                className="w-5 h-5 rounded border-[color:var(--border)]"
+                checked={dailyMasturbated}
+                onChange={(e) => setDailyMasturbated(e.target.checked)}
+              />
+              <label htmlFor="masturbated-checkbox" className="text-sm font-medium cursor-pointer">
+                今天撸管了吗？
+              </label>
+            </div>
+
             <div className="mt-4 flex gap-3">
-              <button className="button buttonPrimary flex-1" onClick={saveDaily}>
-                保存 {dailyDate} 的记录
+              <button className="button buttonPrimary flex-1" onClick={saveDaily} disabled={isSavingDaily}>
+                {isSavingDaily ? "保存中..." : `保存 ${dailyDate} 的记录`}
               </button>
             </div>
 
@@ -818,8 +845,9 @@ export default function AdminPage() {
                 dailyHistory.map((h) => (
                   <div key={h.id} className="flex items-center justify-between p-4 border border-[color:var(--border)] rounded-xl bg-[color:color-mix(in_srgb,var(--panel)_50%,transparent)]">
                     <div className="font-mono text-sm">{h.date}</div>
-                    <div className="text-sm font-medium">
-                      {h.weight !== null ? `${h.weight} kg` : "未记录"}
+                    <div className="text-sm font-medium flex gap-4">
+                      <span>{h.weight !== null ? `${h.weight} kg` : "体重未记录"}</span>
+                      <span>{h.masturbated ? "💦 已撸管" : "✨ 禁欲中"}</span>
                     </div>
                   </div>
                 ))

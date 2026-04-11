@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
     if (date === "all") {
       // return all histories
       const result = await sql`
-        SELECT id, date, weight, created_at, updated_at
+        SELECT id, date, weight, masturbated, created_at, updated_at
         FROM journal_dailies
         ORDER BY date DESC;
       `;
@@ -37,6 +37,7 @@ export async function GET(req: NextRequest) {
           id: String(row.id),
           date: new Date(String(row.date)).toISOString().slice(0, 10),
           weight: row.weight === null ? null : Number(row.weight),
+          masturbated: row.masturbated === true,
           createdAt: new Date(String(row.created_at)).toISOString(),
           updatedAt: new Date(String(row.updated_at)).toISOString(),
         };
@@ -51,7 +52,7 @@ export async function GET(req: NextRequest) {
     }
 
     const result = await sql`
-      SELECT id, date, weight, created_at, updated_at
+      SELECT id, date, weight, masturbated, created_at, updated_at
       FROM journal_dailies
       WHERE date = ${date}::date
       LIMIT 1;
@@ -66,6 +67,7 @@ export async function GET(req: NextRequest) {
       id: String(row.id),
       date: new Date(String(row.date)).toISOString().slice(0, 10),
       weight: row.weight === null ? null : Number(row.weight),
+      masturbated: row.masturbated === true,
       createdAt: new Date(String(row.created_at)).toISOString(),
       updatedAt: new Date(String(row.updated_at)).toISOString(),
     });
@@ -88,17 +90,19 @@ export async function POST(req: NextRequest) {
     }
 
     const weight = typeof body.weight === "number" ? body.weight : null;
+    const masturbated = body.masturbated === true;
 
     const id = randomUUID();
     const now = new Date().toISOString();
 
     const result = await sql`
-      INSERT INTO journal_dailies (id, date, weight, created_at, updated_at)
-      VALUES (${id}, ${date}::date, ${weight}, ${now}::timestamptz, ${now}::timestamptz)
+      INSERT INTO journal_dailies (id, date, weight, masturbated, created_at, updated_at)
+      VALUES (${id}, ${date}::date, ${weight}, ${masturbated}, ${now}::timestamptz, ${now}::timestamptz)
       ON CONFLICT (date) DO UPDATE SET
         weight = EXCLUDED.weight,
+        masturbated = EXCLUDED.masturbated,
         updated_at = EXCLUDED.updated_at
-      RETURNING id, date, weight, created_at, updated_at;
+      RETURNING id, date, weight, masturbated, created_at, updated_at;
     `;
 
     const row = result.rows[0] as Record<string, unknown>;
@@ -106,6 +110,7 @@ export async function POST(req: NextRequest) {
       id: String(row.id),
       date: new Date(String(row.date)).toISOString().slice(0, 10),
       weight: row.weight === null ? null : Number(row.weight),
+      masturbated: row.masturbated === true,
       createdAt: new Date(String(row.created_at)).toISOString(),
       updatedAt: new Date(String(row.updated_at)).toISOString(),
     });
