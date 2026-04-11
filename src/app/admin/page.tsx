@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { DailyChart } from "@/components/DailyChart";
+import { BodyShapeTab } from "@/components/admin/BodyShapeTab";
 
 import {
   DndContext,
@@ -173,7 +174,7 @@ export default function AdminPage() {
   const [checking, setChecking] = useState(true);
   const [authed, setAuthed] = useState(false);
   const [status, setStatus] = useState<string>("");
-  const [tab, setTab] = useState<"notes" | "plans" | "daily">("notes");
+  const [tab, setTab] = useState<"notes" | "plans" | "daily" | "bodyshape">("notes");
 
   const [notes, setNotes] = useState<Note[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -586,49 +587,53 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="container py-10">
-      <div className="flex items-center justify-between gap-3">
-        <div>
+    <div className="flex min-h-screen bg-[color:var(--bg)]">
+      {/* Left Sidebar */}
+      <aside className="fixed left-2 top-2 bottom-2 w-[240px] card p-5 flex flex-col gap-4 overflow-y-auto z-20 shadow-lg">
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-base font-semibold tracking-tight">导航</div>
         </div>
-        <div className="flex items-center gap-2">
-          <button className="button" onClick={refreshAll}>
-            同步
+        <div className="flex flex-col gap-2">
+          <button
+            className={`text-left px-4 py-3 rounded-xl transition-colors ${tab === "notes" ? "bg-[color:var(--accent)] text-white" : "hover:bg-[color:var(--panel)]"}`}
+            onClick={() => setTab("notes")}
+          >
+            笔记
           </button>
-          <button className="button" onClick={onLogout}>
-            退出
+          <button
+            className={`text-left px-4 py-3 rounded-xl transition-colors ${tab === "plans" ? "bg-[color:var(--accent)] text-white" : "hover:bg-[color:var(--panel)]"}`}
+            onClick={() => setTab("plans")}
+          >
+            今日计划
+          </button>
+          <button
+            className={`text-left px-4 py-3 rounded-xl transition-colors ${tab === "daily" ? "bg-[color:var(--accent)] text-white" : "hover:bg-[color:var(--panel)]"}`}
+            onClick={() => setTab("daily")}
+          >
+            每日记录
+          </button>
+          <button
+            className={`text-left px-4 py-3 rounded-xl transition-colors ${tab === "bodyshape" ? "bg-[color:var(--accent)] text-white" : "hover:bg-[color:var(--panel)]"}`}
+            onClick={() => setTab("bodyshape")}
+          >
+            体型记录
           </button>
         </div>
-      </div>
-
-      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[280px_1fr] items-start">
-        <div className="card p-5 flex flex-col gap-4 sticky top-24">
-          <div className="flex items-center justify-between">
-            <div className="text-base font-semibold tracking-tight">导航</div>
-          </div>
-          <div className="flex flex-col gap-2">
-            <button
-              className={`text-left px-4 py-3 rounded-xl transition-colors ${tab === "notes" ? "bg-[color:var(--accent)] text-white" : "hover:bg-[color:var(--panel)]"}`}
-              onClick={() => setTab("notes")}
-            >
-              笔记
-            </button>
-            <button
-              className={`text-left px-4 py-3 rounded-xl transition-colors ${tab === "plans" ? "bg-[color:var(--accent)] text-white" : "hover:bg-[color:var(--panel)]"}`}
-              onClick={() => setTab("plans")}
-            >
-              今日计划
-            </button>
-            <button
-              className={`text-left px-4 py-3 rounded-xl transition-colors ${tab === "daily" ? "bg-[color:var(--accent)] text-white" : "hover:bg-[color:var(--panel)]"}`}
-              onClick={() => setTab("daily")}
-            >
-              每日记录
-            </button>
-          </div>
-          <div className="mt-4 pt-4 border-t border-[color:var(--border)] text-sm text-[color:var(--muted)]">
+        <div className="mt-auto pt-4 border-t border-[color:var(--border)] flex flex-col gap-3">
+          <div className="text-sm text-[color:var(--muted)]">
             {status}
           </div>
+          <button className="button w-full" onClick={refreshAll}>
+            同步数据
+          </button>
+          <button className="button w-full" onClick={onLogout}>
+            退出登录
+          </button>
         </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 ml-[256px] p-6 max-w-6xl">
 
         {tab === "notes" && (
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1.5fr]">
@@ -1035,8 +1040,9 @@ export default function AdminPage() {
             )}
           </div>
         )}
-      </div>
 
+        {tab === "bodyshape" && <BodyShapeTab />}
+      </main>
     </div>
   );
 }
