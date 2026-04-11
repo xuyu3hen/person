@@ -703,6 +703,8 @@ export default function AdminPage() {
             </div>
 
             <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-[140px_140px_1fr_auto]">
+              <input
+                className="rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3"
                 type="time"
                 value={planStart}
                 onChange={(e) => setPlanStart(e.target.value)}
