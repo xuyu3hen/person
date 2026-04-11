@@ -80,6 +80,7 @@ export default function AdminPage() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [daily, setDaily] = useState<Daily | null>(null);
+  const [dailyHistory, setDailyHistory] = useState<Daily[]>([]);
 
   const [loginPassword, setLoginPassword] = useState("");
 
@@ -105,6 +106,7 @@ export default function AdminPage() {
   const [planEnd, setPlanEnd] = useState("10:00");
   const [planTitle, setPlanTitle] = useState("");
 
+  const [dailyDate, setDailyDate] = useState(todayYmd());
   const [dailyWeight, setDailyWeight] = useState("");
 
   useEffect(() => {
@@ -122,6 +124,20 @@ export default function AdminPage() {
     if (!authed) return;
     refreshAll();
   }, [authed]);
+
+  useEffect(() => {
+    if (!authed) return;
+    (async () => {
+      setStatus("拉取记录...");
+      try {
+        const d = await api<Daily | null>(`/api/admin/dailies/?date=${dailyDate}`);
+        setDaily(d);
+        setStatus("已拉取");
+      } catch (e: unknown) {
+        setStatus(`拉取失败：${errorMessage(e)}`);
+      }
+    })();
+  }, [dailyDate, authed]);
 
   useEffect(() => {
     if (daily) {
@@ -151,14 +167,16 @@ export default function AdminPage() {
   async function refreshAll() {
     setStatus("同步中…");
     try {
-      const [ns, ps, d] = await Promise.all([
-        api<Note[]>("/api/admin/notes"),
-        api<Plan[]>("/api/admin/plans/today"),
-        api<Daily | null>(`/api/admin/dailies?date=${todayYmd()}`),
+      const [ns, ps, d, dh] = await Promise.all([
+        api<Note[]>("/api/admin/notes/"),
+        api<Plan[]>("/api/admin/plans/today/"),
+        api<Daily | null>(`/api/admin/dailies/?date=${dailyDate}`),
+        api<Daily[]>(`/api/admin/dailies/?date=all`),
       ]);
       setNotes(ns);
       setPlans(ps);
       setDaily(d);
+      setDailyHistory(dh);
       setStatus("已同步");
     } catch (e: unknown) {
       setStatus(`同步失败：${errorMessage(e)}`);
@@ -168,7 +186,7 @@ export default function AdminPage() {
   async function onLogin() {
     setStatus("登录中…");
     try {
-      await api("/api/admin/login", {
+      await api("/api/admin/login/", {
         method: "POST",
         body: JSON.stringify({ password: loginPassword }),
       });
@@ -182,13 +200,15 @@ export default function AdminPage() {
 
   async function onLogout() {
     try {
-      await api("/api/admin/logout", { method: "POST" });
+      await api("/api/admin/logout/", { method: "POST" });
     } finally {
       setAuthed(false);
       setNotes([]);
       setPlans([]);
       setEditingId("");
       setViewingId("");
+      setDaily(null);
+      setDailyHistory([]);
       setStatus("已退出");
     }
   }
@@ -206,14 +226,14 @@ export default function AdminPage() {
           .filter(Boolean),
       };
       if (editingId) {
-        await api(`/api/admin/notes/${encodeURIComponent(editingId)}`,
+        await api(`/api/admin/notes/${encodeURIComponent(editingId)}/`,
           {
             method: "PUT",
             body: JSON.stringify(payload),
           }
         );
       } else {
-        await api("/api/admin/notes", {
+        await api("/api/admin/notes/", {
           method: "POST",
           body: JSON.stringify(payload),
         });
@@ -234,7 +254,7 @@ export default function AdminPage() {
     if (!confirm("确定删除这条笔记？")) return;
     setStatus("删除中…");
     try {
-      await api(`/api/admin/notes/${encodeURIComponent(id)}`, {
+      await api(`/api/admin/notes/${encodeURIComponent(id)}/`, {
         method: "DELETE",
       });
       if (editingId === id) {
@@ -257,7 +277,7 @@ export default function AdminPage() {
   async function addPlan() {
     setStatus("保存中…");
     try {
-      await api("/api/admin/plans", {
+      await api("/api/admin/plans/", {
         method: "POST",
         body: JSON.stringify({
           date: todayYmd(),
@@ -279,7 +299,7 @@ export default function AdminPage() {
     const next = { ...plan, ...patch };
     setStatus("保存中…");
     try {
-      await api(`/api/admin/plans/${encodeURIComponent(plan.id)}`, {
+      await api(`/api/admin/plans/${encodeURIComponent(plan.id)}/`, {
         method: "PUT",
         body: JSON.stringify({
           date: next.date,
@@ -300,7 +320,7 @@ export default function AdminPage() {
     if (!confirm("确定删除这条计划？")) return;
     setStatus("删除中…");
     try {
-      await api(`/api/admin/plans/${encodeURIComponent(id)}`, {
+      await api(`/api/admin/plans/${encodeURIComponent(id)}/`, {
         method: "DELETE",
       });
       await refreshAll();
@@ -313,15 +333,15 @@ export default function AdminPage() {
   async function saveDaily() {
     setStatus("保存中…");
     try {
-      await api(`/api/admin/dailies`, {
+      await api(`/api/admin/dailies/`, {
         method: "POST",
         body: JSON.stringify({
-          date: todayYmd(),
+          date: dailyDate,
           weight: dailyWeight ? Number(dailyWeight) : null,
         }),
       });
       await refreshAll();
-      setStatus("今日数据已保存");
+      setStatus(`${dailyDate} 数据已保存`);
     } catch (e: unknown) {
       setStatus(`保存失败：${errorMessage(e)}`);
     }
@@ -756,7 +776,22 @@ export default function AdminPage() {
 
         {tab === "daily" && (
           <div className="card p-6 flex flex-col gap-5">
-            <div className="text-lg font-semibold tracking-tight">每日记录 ({todayYmd()})</div>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="text-lg font-semibold tracking-tight">每日记录</div>
+              <input
+                type="date"
+                max={todayYmd()}
+                className="rounded-xl border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-2 text-sm"
+                value={dailyDate}
+                onChange={(e) => {
+                  if (e.target.value > todayYmd()) {
+                    alert("不能录入未来日期的记录！");
+                    return;
+                  }
+                  setDailyDate(e.target.value);
+                }}
+              />
+            </div>
             
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium">体重 (kg)</label>
@@ -772,8 +807,25 @@ export default function AdminPage() {
 
             <div className="mt-4 flex gap-3">
               <button className="button buttonPrimary flex-1" onClick={saveDaily}>
-                保存今日记录
+                保存 {dailyDate} 的记录
               </button>
+            </div>
+
+            <hr className="my-4 border-[color:var(--border)]" />
+            <div className="text-md font-semibold tracking-tight">历史记录</div>
+            <div className="flex flex-col gap-3">
+              {dailyHistory.length > 0 ? (
+                dailyHistory.map((h) => (
+                  <div key={h.id} className="flex items-center justify-between p-4 border border-[color:var(--border)] rounded-xl bg-[color:color-mix(in_srgb,var(--panel)_50%,transparent)]">
+                    <div className="font-mono text-sm">{h.date}</div>
+                    <div className="text-sm font-medium">
+                      {h.weight !== null ? `${h.weight} kg` : "未记录"}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-sm text-[color:var(--muted)]">暂无历史记录</div>
+              )}
             </div>
           </div>
         )}

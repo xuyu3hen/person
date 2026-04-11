@@ -23,8 +23,29 @@ export async function GET(req: NextRequest) {
     const sql = getSql();
     const url = new URL(req.url);
     const date = url.searchParams.get("date") ?? "";
+
+    if (date === "all") {
+      // return all histories
+      const result = await sql`
+        SELECT id, date, weight, created_at, updated_at
+        FROM journal_dailies
+        ORDER BY date DESC;
+      `;
+      const all = result.rows.map((r) => {
+        const row = r as Record<string, unknown>;
+        return {
+          id: String(row.id),
+          date: new Date(String(row.date)).toISOString().slice(0, 10),
+          weight: row.weight === null ? null : Number(row.weight),
+          createdAt: new Date(String(row.created_at)).toISOString(),
+          updatedAt: new Date(String(row.updated_at)).toISOString(),
+        };
+      });
+      return NextResponse.json(all);
+    }
+
     if (!isValidDateYmd(date)) {
-      throw Object.assign(new Error("date query param is required (YYYY-MM-DD)"), {
+      throw Object.assign(new Error("date query param is required (YYYY-MM-DD) or 'all'"), {
         status: 400,
       });
     }
