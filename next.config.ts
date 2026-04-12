@@ -49,7 +49,12 @@ const nextConfig: NextConfig = {
   basePath: normalizedBasePath || undefined,
   assetPrefix: normalizedBasePath ? `${normalizedBasePath}/` : undefined,
   images: {
-    unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images-assets.nasa.gov',
+      },
+    ],
   },
 };
 

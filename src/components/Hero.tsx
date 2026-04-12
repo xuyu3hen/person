@@ -1,4 +1,5 @@
-import { ArrowUpRight, Download, Mail } from "lucide-react";
+import { ArrowUpRight, Download, Mail, Globe } from "lucide-react";
+import Link from "next/link";
 
 import { site } from "@/lib/site-data";
 
@@ -21,8 +22,11 @@ export function Hero() {
               <div className="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--muted)]">
                 {site.title}
               </div>
-              <h1 className="text-[42px] leading-[1.08] font-semibold tracking-tight heroTitle">
+              <h1 className="text-[42px] leading-[1.08] font-semibold tracking-tight heroTitle flex items-center gap-3">
                 {site.name}
+                <Link href="/earth" title="探索地球" className="text-blue-500 hover:text-blue-400 transition-colors inline-flex items-center justify-center p-1.5 rounded-full hover:bg-blue-500/10">
+                  <Globe size={32} className="animate-[spin_20s_linear_infinite]" />
+                </Link>
               </h1>
               <p className="max-w-2xl text-[15px] leading-7 text-[color:var(--muted)]">
                 {site.intro}

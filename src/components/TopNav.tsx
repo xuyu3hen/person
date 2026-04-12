@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu, X, Settings } from "lucide-react";
+import { Menu, X, Settings, Globe } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState, useEffect } from "react";
 
@@ -38,24 +38,29 @@ export function TopNav() {
   return (
     <header className="sticky top-0 z-50 border-b border-[color:var(--border)] bg-[color:color-mix(in_srgb,var(--bg)_80%,transparent)] backdrop-blur">
       <div className="container h-16 flex items-center justify-between">
-        <button
-          type="button"
-          onClick={() => onPick("home")}
-          className="flex items-center gap-3"
-          aria-label="回到首页"
-        >
-          <div className="h-9 w-9 rounded-xl border border-[color:color-mix(in_srgb,var(--accent)_35%,var(--border))] bg-[color:color-mix(in_srgb,var(--panel)_70%,transparent)] shadow-[0_0_0_1px_color-mix(in_srgb,var(--accent)_12%,transparent)] flex items-center justify-center text-[10px] font-mono text-[color:var(--muted)]">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => onPick("home")}
+            className="flex items-center justify-center h-9 w-9 rounded-xl border border-[color:color-mix(in_srgb,var(--accent)_35%,var(--border))] bg-[color:color-mix(in_srgb,var(--panel)_70%,transparent)] shadow-[0_0_0_1px_color-mix(in_srgb,var(--accent)_12%,transparent)] text-[10px] font-mono text-[color:var(--muted)] hover:opacity-80 transition-opacity"
+            aria-label="回到首页"
+          >
             v{pkg.version}
-          </div>
+          </button>
           <div className="flex flex-col leading-tight">
-            <div className="text-sm font-semibold tracking-tight">
-              {site.name}
+            <div className="text-sm font-semibold tracking-tight flex items-center gap-1.5">
+              <button onClick={() => onPick("home")} className="hover:text-[color:var(--accent)] transition-colors text-left">
+                {site.name}
+              </button>
+              <Link href="/earth" title="探索地球" className="text-blue-500 hover:text-blue-400 transition-colors">
+                <Globe size={14} className="animate-[spin_20s_linear_infinite]" />
+              </Link>
             </div>
-            <div className="text-xs text-[color:var(--muted)]">
+            <div className="text-xs text-[color:var(--muted)] cursor-pointer hover:text-[color:var(--accent)] transition-colors" onClick={() => onPick("home")}>
               Journal · Plans · Life
             </div>
           </div>
-        </button>
+        </div>
 
         <nav className="hidden md:flex items-center gap-2">
           {nav.map((item) => {
