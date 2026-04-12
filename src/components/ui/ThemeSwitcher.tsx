@@ -21,7 +21,10 @@ export function ThemeSwitcher() {
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
 
-  useEffect(() => setMounted(true), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   if (!mounted) return <div className="w-10 h-10" />; // placeholder
 

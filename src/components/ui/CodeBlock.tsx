@@ -21,8 +21,12 @@ export interface CodeBlockProps {
 export function CodeBlock({ code, language = "typescript", className }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
 
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
+    setMounted(true);
     Prism.highlightAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [code, language]);
 
   const onCopy = async () => {
@@ -49,9 +53,15 @@ export function CodeBlock({ code, language = "typescript", className }: CodeBloc
         </button>
       </div>
       <div className="p-4 overflow-x-auto">
-        <pre className={cn(`language-${language}`, "m-0 p-0 bg-transparent text-[#ececec] font-mono text-[13px] leading-relaxed")}>
-          <code className={`language-${language}`}>{code}</code>
-        </pre>
+        {mounted ? (
+          <pre className={cn(`language-${language}`, "m-0 p-0 bg-transparent text-[#ececec] font-mono text-[13px] leading-relaxed")}>
+            <code className={`language-${language}`}>{code}</code>
+          </pre>
+        ) : (
+          <pre className="m-0 p-0 bg-transparent text-[#ececec] font-mono text-[13px] leading-relaxed">
+            <code>{code}</code>
+          </pre>
+        )}
       </div>
     </div>
   );
