@@ -23,10 +23,10 @@ export function CodeBlock({ code, language = "typescript", className }: CodeBloc
 
   const [mounted, setMounted] = useState(false);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     setMounted(true);
     Prism.highlightAll();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [code, language]);
 
   const onCopy = async () => {
