@@ -128,21 +128,20 @@ export const site = {
   ] satisfies Publication[],
   experience: [
     {
-      org: "Your University (Example)",
-      role: "Research Student",
-      time: "2022 — Present",
+      org: "楚科信息科技有限公司",
+      role: "软件工程师",
+      time: "2022 — 2026",
       bullets: [
-        "提出并实现可复现实验流水线，缩短评测迭代时间。",
-        "在工具调用与检索增强方向进行系统性误差分析。",
+        "负责公司核心业务系统的架构设计与全栈开发。",
+        "落地可观测性体系，提升故障定位效率。",
       ],
     },
     {
-      org: "Your Company (Example)",
-      role: "Software Engineer",
-      time: "2019 — 2022",
+      org: "华中科技大学",
+      role: "计算机科学与技术",
+      time: "2018 — 2022",
       bullets: [
-        "负责在线推理服务的性能与可靠性优化。",
-        "落地可观测性体系，提升故障定位效率。",
+        "主修计算机科学与技术核心课程，参与多个重点实验室科研项目。",
       ],
     },
   ] satisfies TimelineItem[],
