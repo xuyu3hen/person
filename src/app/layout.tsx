@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import "./globals.css";
-import { ThemeScript } from "./theme-script";
+import { ThemeProvider } from "@/components/ui/ThemeProvider";
 
 export const dynamic = "force-static";
 
@@ -38,9 +38,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN" className="h-full antialiased" suppressHydrationWarning>
-      <body className="min-h-full flex flex-col">
-        <ThemeScript />
-        {children}
+      <body className="min-h-full flex flex-col bg-[color:var(--bg)] text-[color:var(--text)]">
+        <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

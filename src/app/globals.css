@@ -1,26 +1,68 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #0b1020;
-  --panel: rgba(255, 255, 255, 0.04);
-  --text: rgba(255, 255, 255, 0.92);
-  --muted: rgba(255, 255, 255, 0.62);
-  --accent: #6ee7ff;
-  --border: rgba(255, 255, 255, 0.1);
+  /* Default: OpenAI Dark */
+  --bg: #000000;
+  --panel: #171717;
+  --text: #ececec;
+  --muted: #888888;
+  --accent: #10a37f;
+  --border: #2e2e2e;
+  --ring: rgba(16, 163, 127, 0.4);
+}
+
+[data-theme="light"] {
+  /* OpenAI Light */
+  --bg: #ffffff;
+  --panel: #f9f9f9;
+  --text: #0d0d0d;
+  --muted: #666666;
+  --accent: #10a37f;
+  --border: #e5e5e5;
+  --ring: rgba(16, 163, 127, 0.4);
+}
+
+[data-theme="anthropic-dark"] {
+  /* Anthropic Dark */
+  --bg: #1c1a17;
+  --panel: #292723;
+  --text: #f4f0ec;
+  --muted: #a6a199;
+  --accent: #d97757;
+  --border: #3e3a35;
+  --ring: rgba(217, 119, 87, 0.4);
+}
+
+[data-theme="anthropic-light"] {
+  /* Anthropic Light */
+  --bg: #fdfbf7;
+  --panel: #f2efe9;
+  --text: #1a1918;
+  --muted: #736d65;
+  --accent: #d97757;
+  --border: #e6e2db;
+  --ring: rgba(217, 119, 87, 0.4);
+}
+
+[data-theme="monochrome"] {
+  /* High Contrast Monochrome */
+  --bg: #000000;
+  --panel: #000000;
+  --text: #ffffff;
+  --muted: #aaaaaa;
+  --accent: #ffffff;
+  --border: #333333;
+  --ring: rgba(255, 255, 255, 0.4);
 }
 
 @theme inline {
   --color-background: var(--bg);
   --color-foreground: var(--text);
-}
-
-[data-theme="light"] {
-  --bg: #f8fafc;
-  --panel: rgba(2, 6, 23, 0.04);
-  --text: rgba(2, 6, 23, 0.92);
-  --muted: rgba(2, 6, 23, 0.64);
-  --accent: #0ea5e9;
-  --border: rgba(2, 6, 23, 0.12);
+  --color-panel: var(--panel);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
 }
 
 body {
