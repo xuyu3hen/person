@@ -90,7 +90,41 @@ body::before {
     );
   opacity: 0.55;
   mix-blend-mode: normal;
-  z-index: 0;
+  z-index: -2;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  right: -10vw;
+  top: 10vh;
+  width: 50vw;
+  height: 50vw;
+  max-width: 600px;
+  max-height: 600px;
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(59, 130, 246, 0.4) 0%,
+    rgba(37, 99, 235, 0.2) 20%,
+    rgba(29, 78, 216, 0.05) 50%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: -1;
+  animation: float 20s ease-in-out infinite alternate, spin 60s linear infinite;
+  box-shadow: inset -20px -20px 40px rgba(0,0,0,0.5), 0 0 100px rgba(59, 130, 246, 0.2);
+}
+
+@keyframes float {
+  0% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-20px) scale(1.05); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .heroGlow {

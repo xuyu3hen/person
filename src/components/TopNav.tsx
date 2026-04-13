@@ -52,9 +52,7 @@ export function TopNav() {
               <button onClick={() => onPick("home")} className="hover:text-[color:var(--accent)] transition-colors text-left">
                 {site.name}
               </button>
-              <Link href="/earth" title="探索地球" className="text-blue-500 hover:text-blue-400 transition-colors">
-                <Globe size={14} className="animate-[spin_20s_linear_infinite]" />
-              </Link>
+              <Globe size={14} className="animate-[spin_20s_linear_infinite] text-blue-500" />
             </div>
             <div className="text-xs text-[color:var(--muted)] cursor-pointer hover:text-[color:var(--accent)] transition-colors" onClick={() => onPick("home")}>
               Journal · Plans · Life

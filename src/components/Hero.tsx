@@ -24,9 +24,7 @@ export function Hero() {
               </div>
               <h1 className="text-[42px] leading-[1.08] font-semibold tracking-tight heroTitle flex items-center gap-3">
                 {site.name}
-                <Link href="/earth" title="探索地球" className="text-blue-500 hover:text-blue-400 transition-colors inline-flex items-center justify-center p-1.5 rounded-full hover:bg-blue-500/10">
-                  <Globe size={32} className="animate-[spin_20s_linear_infinite]" />
-                </Link>
+                <Globe size={32} className="animate-[spin_20s_linear_infinite] text-blue-500" />
               </h1>
               <p className="max-w-2xl text-[15px] leading-7 text-[color:var(--muted)]">
                 {site.intro}

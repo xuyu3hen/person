@@ -81,6 +81,15 @@ type Paper = {
   updatedAt: string;
 };
 
+type Document = {
+  id: string;
+  title: string;
+  type: string;
+  fileUrl: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
     ...init,
@@ -200,7 +209,7 @@ export default function AdminPage() {
   const [checking, setChecking] = useState(true);
   const [authed, setAuthed] = useState(false);
   const [status, setStatus] = useState<string>("");
-  const [tab, setTab] = useState<"notes" | "plans" | "daily" | "bodyshape" | "papers">("notes");
+  const [tab, setTab] = useState<"notes" | "plans" | "daily" | "bodyshape" | "papers" | "documents">("notes");
 
   const [notes, setNotes] = useState<Note[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -208,6 +217,7 @@ export default function AdminPage() {
   const [dailyHistory, setDailyHistory] = useState<Daily[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [papers, setPapers] = useState<Paper[]>([]);
+  const [documents, setDocuments] = useState<Document[]>([]);
 
   const [loginPassword, setLoginPassword] = useState("");
 
@@ -258,6 +268,10 @@ export default function AdminPage() {
   const [dailyDate, setDailyDate] = useState(todayYmd());
   const [dailyWeight, setDailyWeight] = useState("");
   const [dailyMasturbated, setDailyMasturbated] = useState(false);
+
+  const [docTitle, setDocTitle] = useState("");
+  const [docType, setDocType] = useState("certificate");
+  const [docFile, setDocFile] = useState<File | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -333,18 +347,20 @@ export default function AdminPage() {
   async function refreshAll() {
     setStatus("同步中…");
     try {
-      const [ns, ps, d, dh, p] = await Promise.all([
+      const [ns, ps, d, dh, p, docs] = await Promise.all([
         api<Note[]>("/api/admin/notes/"),
         api<Plan[]>("/api/admin/plans/today/"),
         api<Daily | null>(`/api/admin/dailies/?date=${dailyDate}`),
         api<Daily[]>(`/api/admin/dailies/?date=all`),
         api<Paper[]>("/api/admin/papers/"),
+        api<Document[]>("/api/admin/documents/"),
       ]);
       setNotes(ns);
       setPlans(ps);
       setDaily(d);
       setDailyHistory(dh);
       setPapers(p);
+      setDocuments(docs);
       setStatus("已同步");
     } catch (e: unknown) {
       setStatus(`同步失败：${errorMessage(e)}`);
@@ -617,6 +633,65 @@ export default function AdminPage() {
     }
   }
 
+  const [isUploadingDoc, setIsUploadingDoc] = useState(false);
+
+  async function saveDocument() {
+    if (!docTitle.trim() || !docFile) {
+      setStatus("请填写标题并选择文件");
+      return;
+    }
+    if (isUploadingDoc) return;
+    setIsUploadingDoc(true);
+    setStatus("上传中…");
+    try {
+      // 1. Upload file to Vercel Blob
+      const formData = new FormData();
+      formData.append("file", docFile);
+      const uploadRes = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok) {
+        throw new Error(uploadData.error || "上传失败");
+      }
+
+      // 2. Save document record to DB
+      await api("/api/admin/documents/", {
+        method: "POST",
+        body: JSON.stringify({
+          id: String(Date.now()),
+          title: docTitle,
+          type: docType,
+          fileUrl: uploadData.url,
+        }),
+      });
+
+      setDocTitle("");
+      setDocFile(null);
+      await refreshAll();
+      setStatus("文档已保存");
+    } catch (e: unknown) {
+      setStatus(`保存失败：${errorMessage(e)}`);
+    } finally {
+      setIsUploadingDoc(false);
+    }
+  }
+
+  async function deleteDocument(id: string) {
+    if (!confirm("确定删除此文档？")) return;
+    setStatus("删除中…");
+    try {
+      await api(`/api/admin/documents/${encodeURIComponent(id)}/`, {
+        method: "DELETE",
+      });
+      await refreshAll();
+      setStatus("文档已删除");
+    } catch (e: unknown) {
+      setStatus(`删除失败：${errorMessage(e)}`);
+    }
+  }
+
   if (checking) {
     return (
       <div className="container py-16">
@@ -695,6 +770,12 @@ export default function AdminPage() {
             onClick={() => setTab("papers")}
           >
             论文管理
+          </button>
+          <button
+            className={`text-left px-4 py-3 rounded-xl transition-colors ${tab === "documents" ? "bg-[color:var(--accent)] text-white" : "hover:bg-[color:var(--panel)]"}`}
+            onClick={() => setTab("documents")}
+          >
+            简历与证书
           </button>
         </div>
         <div className="mt-auto pt-4 border-t border-[color:var(--border)] flex flex-col gap-3">
@@ -1231,6 +1312,111 @@ export default function AdminPage() {
 
         {tab === "bodyshape" && <BodyShapeTab />}
         {tab === "papers" && <PapersTab />}
+        
+        {tab === "documents" && (
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_2fr]">
+            {/* 上传表单 */}
+            <div className="card p-6 flex flex-col gap-5 h-fit">
+              <div className="text-lg font-semibold tracking-tight">上传新文档</div>
+              
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium text-[color:var(--text)]">文档类型</label>
+                <select
+                  className="rounded-xl border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+                  value={docType}
+                  onChange={(e) => setDocType(e.target.value)}
+                >
+                  <option value="resume">简历 (Resume)</option>
+                  <option value="certificate">证书 (Certificate)</option>
+                  <option value="other">其他 (Other)</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium text-[color:var(--text)]">文档标题</label>
+                <input
+                  className="rounded-xl border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+                  placeholder="如：软件设计师证书、2024年前端简历..."
+                  value={docTitle}
+                  onChange={(e) => setDocTitle(e.target.value)}
+                />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium text-[color:var(--text)]">选择文件 (PDF/图片等)</label>
+                <input
+                  type="file"
+                  className="rounded-xl border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3 text-sm"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null;
+                    setDocFile(file);
+                  }}
+                />
+              </div>
+
+              <button
+                className="button buttonPrimary mt-2"
+                onClick={saveDocument}
+                disabled={isUploadingDoc}
+              >
+                {isUploadingDoc ? "上传中..." : "上传并保存"}
+              </button>
+            </div>
+
+            {/* 文档列表 */}
+            <div className="card p-6 flex flex-col gap-5">
+              <div className="flex items-center justify-between">
+                <div className="text-lg font-semibold tracking-tight">已上传的文档</div>
+                <div className="text-sm text-[color:var(--muted)]">共 {documents.length} 个</div>
+              </div>
+              
+              <div className="flex flex-col gap-4">
+                {documents.length > 0 ? (
+                  documents.map((doc) => (
+                    <div key={doc.id} className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-xl border border-[color:var(--border)] bg-[color:color-mix(in_srgb,var(--panel)_50%,transparent)] hover:bg-[color:var(--panel)] transition-colors">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                            doc.type === 'resume' ? 'bg-blue-500/20 text-blue-600' :
+                            doc.type === 'certificate' ? 'bg-green-500/20 text-green-600' :
+                            'bg-gray-500/20 text-gray-600'
+                          }`}>
+                            {doc.type === 'resume' ? '简历' : doc.type === 'certificate' ? '证书' : '其他'}
+                          </span>
+                          <span className="font-medium">{doc.title}</span>
+                        </div>
+                        <div className="text-xs text-[color:var(--muted)]">
+                          上传于 {new Date(doc.createdAt).toLocaleString()}
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <a 
+                          href={doc.fileUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="button text-xs py-1.5"
+                        >
+                          查看/下载
+                        </a>
+                        <button 
+                          className="button buttonDanger text-xs py-1.5"
+                          onClick={() => deleteDocument(doc.id)}
+                        >
+                          删除
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-10 text-sm text-[color:var(--muted)]">
+                    暂无文档，请在左侧上传
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

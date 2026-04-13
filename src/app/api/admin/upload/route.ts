@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminCookieName, verifyAdminSessionCookieValue } from "@/lib/admin-auth";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
+import { put } from "@vercel/blob";
 
 export const runtime = "nodejs";
 
@@ -22,23 +21,19 @@ export async function POST(req: NextRequest) {
       throw Object.assign(new Error("No file uploaded"), { status: 400 });
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    // Save to public/papers directory
-    const publicDir = join(process.cwd(), "public", "papers");
-    try {
-      await mkdir(publicDir, { recursive: true });
-    } catch {
-      // directory might already exist, ignore
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      throw Object.assign(new Error("Vercel Blob is not configured. Please set BLOB_READ_WRITE_TOKEN in environment variables."), { status: 500 });
     }
 
-    const filename = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-    const filePath = join(publicDir, filename);
-    await writeFile(filePath, buffer);
+    const filename = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_")}`;
+    
+    // Upload to Vercel Blob
+    const blob = await put(filename, file, {
+      access: 'public',
+    });
 
     return NextResponse.json({
-      url: `/papers/${filename}`
+      url: blob.url
     });
   } catch (e: unknown) {
     const status = e && typeof e === "object" && "status" in e ? Number((e as Record<string, unknown>).status) : 500;
