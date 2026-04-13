@@ -120,16 +120,16 @@ function todayYmd() {
 }
 
 function SortablePlanItem({
-  p,
+  plan,
   updatePlan,
   deletePlan,
 }: {
-  p: Plan;
-  updatePlan: (p: Plan, patch: Partial<Plan>) => void;
+  plan: Plan;
+  updatePlan: (plan: Plan, patch: Partial<Plan>) => void;
   deletePlan: (id: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
-    id: p.id,
+    id: plan.id,
   });
 
   const style = {
@@ -152,20 +152,20 @@ function SortablePlanItem({
           <input
             className="mt-1"
             type="checkbox"
-            checked={p.done}
-            onChange={(e) => updatePlan(p, { done: e.target.checked })}
+            checked={plan.done}
+            onChange={(e) => updatePlan(plan, { done: e.target.checked })}
           />
           <div>
-            <div className={`text-sm font-semibold tracking-tight ${p.done ? 'line-through text-[color:var(--muted)]' : ''}`}>
-              {p.title}
+            <div className={`text-sm font-semibold tracking-tight ${plan.done ? 'line-through text-[color:var(--muted)]' : ''}`}>
+              {plan.title}
             </div>
             <div className="mt-1 text-xs text-[color:var(--muted)]">
-              {p.startTime}
-              {p.endTime ? ` - ${p.endTime}` : ""}
+              {plan.startTime}
+              {plan.endTime ? ` - ${plan.endTime}` : ""}
             </div>
           </div>
         </div>
-        <button className="button" onClick={() => deletePlan(p.id)}>
+        <button className="button" onClick={() => deletePlan(plan.id)}>
           删除
         </button>
       </div>
@@ -174,22 +174,22 @@ function SortablePlanItem({
         <input
           className="rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-2"
           type="time"
-          value={p.startTime}
-          onChange={(e) => updatePlan(p, { startTime: e.target.value })}
+          value={plan.startTime}
+          onChange={(e) => updatePlan(plan, { startTime: e.target.value })}
         />
         <input
           className="rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-2"
           type="time"
-          value={p.endTime}
-          onChange={(e) => updatePlan(p, { endTime: e.target.value })}
+          value={plan.endTime}
+          onChange={(e) => updatePlan(plan, { endTime: e.target.value })}
         />
         <input
           className="rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-2"
-          value={p.title}
-          onChange={(e) => updatePlan(p, { title: e.target.value })}
+          value={plan.title}
+          onChange={(e) => updatePlan(plan, { title: e.target.value })}
         />
         <div className="text-xs text-[color:var(--muted)] self-center">
-          {p.done ? "已完成" : "进行中"}
+          {plan.done ? "已完成" : "进行中"}
         </div>
       </div>
     </div>
@@ -206,6 +206,7 @@ export default function AdminPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [daily, setDaily] = useState<Daily | null>(null);
   const [dailyHistory, setDailyHistory] = useState<Daily[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [papers, setPapers] = useState<Paper[]>([]);
 
   const [loginPassword, setLoginPassword] = useState("");
@@ -530,15 +531,15 @@ export default function AdminPage() {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      setPlans((items) => {
-        const oldIndex = items.findIndex((i) => i.id === active.id);
-        const newIndex = items.findIndex((i) => i.id === over.id);
-        const newItems = arrayMove(items, oldIndex, newIndex);
+      // Optimistically update order
+      setPlans((prevPlans) => {
+        const oldIndex = prevPlans.findIndex((i) => i.id === active.id);
+        const newIndex = prevPlans.findIndex((i) => i.id === over.id);
+        const newItems = arrayMove(prevPlans, oldIndex, newIndex);
         
-        // Optimistically update order
-        const updates = newItems.map((item, index) => ({
+        const updates = newItems.map((item: Plan, index: number) => ({
           id: item.id,
-          sortOrder: index
+          sortOrder: index,
         }));
         
         // Send bulk update to server
@@ -1085,21 +1086,21 @@ export default function AdminPage() {
               </button>
             </div>
 
-            <div className="mt-5 flex flex-col gap-2">
-              {plans.length ? (
-                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                  <SortableContext items={plans} strategy={verticalListSortingStrategy}>
-                    {plans.map((p) => (
-                      <SortablePlanItem key={p.id} p={p} updatePlan={updatePlan} deletePlan={deletePlan} />
-                    ))}
-                  </SortableContext>
-                </DndContext>
-              ) : (
-                <div className="text-sm text-[color:var(--muted)]">
-                  今天还没有计划。
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={plans.map((p) => p.id)} strategy={verticalListSortingStrategy}>
+                <div className="mt-5 flex flex-col gap-2">
+                  {plans.length ? (
+                    plans.map((p) => (
+                      <SortablePlanItem key={p.id} plan={p} updatePlan={updatePlan} deletePlan={deletePlan} />
+                    ))
+                  ) : (
+                    <div className="text-sm text-[color:var(--muted)]">
+                      今天还没有计划。
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </SortableContext>
+            </DndContext>
           </div>
         )}
 
