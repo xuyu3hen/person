@@ -914,32 +914,32 @@ export default function AdminPage() {
                   </div>
                 </>
               ) : (
-                <div className="flex flex-col flex-1 h-[70vh] min-h-[600px] overflow-hidden">
-                  <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-col flex-1 h-[75vh] min-h-[700px] overflow-hidden mt-4">
+                  <div className="flex items-center justify-between mb-6">
                     <button
-                      className="button px-2"
+                      className="button px-3 py-1"
                       onClick={() => setCalendarMonth((m) => subMonths(m, 1))}
                     >
-                      &lt;
+                      &lt; 上一月
                     </button>
-                    <div className="text-base font-semibold text-center">
-                      {format(calendarMonth, "yyyy年MM月")}
+                    <div className="text-lg font-bold tracking-tight text-center">
+                      {format(calendarMonth, "yyyy年 MM月")}
                     </div>
                     <button
-                      className="button px-2"
+                      className="button px-3 py-1"
                       onClick={() => setCalendarMonth((m) => addMonths(m, 1))}
                     >
-                      &gt;
+                      下一月 &gt;
                     </button>
                   </div>
       
-                  <div className="grid grid-cols-7 gap-2 text-center text-sm font-medium text-[color:var(--muted)] mb-2">
-                    {["日", "一", "二", "三", "四", "五", "六"].map((d) => (
-                      <div key={d} className="py-2">{d}</div>
+                  <div className="grid grid-cols-7 gap-3 text-center text-sm font-semibold text-[color:var(--muted)] mb-3">
+                    {["周日", "周一", "周二", "周三", "周四", "周五", "周六"].map((d) => (
+                      <div key={d} className="py-2 bg-[color:color-mix(in_srgb,var(--panel)_30%,transparent)] rounded-lg">{d}</div>
                     ))}
                   </div>
       
-                  <div className="grid grid-cols-7 gap-2 flex-1 auto-rows-fr overflow-y-auto no-scrollbar pb-2">
+                  <div className="grid grid-cols-7 gap-3 flex-1 auto-rows-fr overflow-y-auto no-scrollbar pb-4">
                     {calendarDays.map((day) => {
                       const dStr = format(day, "yyyy-MM-dd");
                       const dayNotes = notesByDate[dStr] || [];
@@ -949,11 +949,11 @@ export default function AdminPage() {
                       return (
                         <div
                           key={dStr}
-                          className={`border rounded-xl p-2 flex flex-col overflow-hidden cursor-pointer transition-all min-h-[100px] ${
+                          className={`border rounded-2xl p-3 flex flex-col overflow-hidden cursor-pointer transition-all min-h-[120px] ${
                             isCurMonth
-                              ? "border-[color:var(--border)] bg-[color:var(--panel)] hover:bg-[color:color-mix(in_srgb,var(--panel)_80%,transparent)] shadow-sm"
+                              ? "border-[color:var(--border)] bg-[color:var(--panel)] hover:bg-[color:color-mix(in_srgb,var(--panel)_80%,transparent)] hover:shadow-md hover:-translate-y-0.5"
                               : "border-transparent opacity-40 bg-[color:color-mix(in_srgb,var(--panel)_30%,transparent)]"
-                          } ${isTodayDay ? "ring-2 ring-[color:var(--accent)]" : ""}`}
+                          } ${isTodayDay ? "ring-2 ring-[color:var(--accent)] bg-[color:color-mix(in_srgb,var(--accent)_5%,var(--panel))]" : ""}`}
                           onClick={() => {
                             const now = new Date();
                             day.setHours(now.getHours(), now.getMinutes());
@@ -967,17 +967,17 @@ export default function AdminPage() {
                           }}
                         >
                           <div
-                            className={`text-right text-sm mb-2 ${
+                            className={`text-right text-base mb-2 ${
                               isTodayDay ? "text-[color:var(--accent)] font-bold" : "text-[color:var(--muted)] font-medium"
                             }`}
                           >
                             {format(day, "d")}
                           </div>
-                          <div className="flex flex-col gap-1.5 overflow-y-auto no-scrollbar">
+                          <div className="flex flex-col gap-2 overflow-y-auto no-scrollbar">
                             {dayNotes.map((n) => (
                               <div
                                 key={n.id}
-                                className="text-xs truncate rounded-md bg-[color:color-mix(in_srgb,var(--accent)_15%,transparent)] hover:bg-[color:color-mix(in_srgb,var(--accent)_25%,transparent)] px-2 py-1 text-[color:var(--accent)] transition-colors"
+                                className="text-sm font-medium truncate rounded-lg bg-[color:color-mix(in_srgb,var(--accent)_15%,transparent)] hover:bg-[color:color-mix(in_srgb,var(--accent)_30%,transparent)] px-3 py-1.5 text-[color:var(--accent)] transition-colors shadow-sm"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setViewingId(n.id);
