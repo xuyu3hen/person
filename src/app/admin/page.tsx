@@ -264,6 +264,8 @@ export default function AdminPage() {
     return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
   });
   const [planTitle, setPlanTitle] = useState("");
+  const [planDate, setPlanDate] = useState(todayYmd());
+  const [planViewMode, setPlanViewMode] = useState<"list" | "calendar">("list");
 
   const [dailyDate, setDailyDate] = useState(todayYmd());
   const [dailyWeight, setDailyWeight] = useState("");
@@ -349,7 +351,7 @@ export default function AdminPage() {
     try {
       const [ns, ps, d, dh, p, docs] = await Promise.all([
         api<Note[]>("/api/admin/notes/"),
-        api<Plan[]>("/api/admin/plans/today/"),
+        api<Plan[]>(`/api/admin/plans/?date=${planDate}`),
         api<Daily | null>(`/api/admin/dailies/?date=${dailyDate}`),
         api<Daily[]>(`/api/admin/dailies/?date=all`),
         api<Paper[]>("/api/admin/papers/"),
@@ -376,6 +378,24 @@ export default function AdminPage() {
     });
     return map;
   }, [notes]);
+
+  const [allPlans, setAllPlans] = useState<Plan[]>([]);
+  useEffect(() => {
+    if (authed && planViewMode === "calendar") {
+      // Fetch all plans for calendar view
+      api<Plan[]>("/api/admin/plans/?date=all").then(setAllPlans).catch(console.error);
+    }
+  }, [authed, planViewMode, plans]); // refetch when plans update (e.g. after save)
+
+  const plansByDate = useMemo(() => {
+    const map: Record<string, Plan[]> = {};
+    allPlans.forEach((p) => {
+      const d = p.date;
+      if (!map[d]) map[d] = [];
+      map[d].push(p);
+    });
+    return map;
+  }, [allPlans]);
 
   const calendarDays = useMemo(() => {
     const start = startOfWeek(startOfMonth(calendarMonth));
@@ -487,7 +507,7 @@ export default function AdminPage() {
       await api("/api/admin/plans/", {
         method: "POST",
         body: JSON.stringify({
-          date: todayYmd(),
+          date: planDate,
           startTime: planStart,
           endTime: planEnd,
           title: planTitle,
@@ -894,7 +914,7 @@ export default function AdminPage() {
                   </div>
                 </>
               ) : (
-                <div className="flex flex-col flex-1 h-[70vh] overflow-hidden">
+                <div className="flex flex-col flex-1 h-[70vh] min-h-[600px] overflow-hidden">
                   <div className="flex items-center justify-between mb-4">
                     <button
                       className="button px-2"
@@ -902,7 +922,7 @@ export default function AdminPage() {
                     >
                       &lt;
                     </button>
-                    <div className="text-sm font-semibold text-center">
+                    <div className="text-base font-semibold text-center">
                       {format(calendarMonth, "yyyy年MM月")}
                     </div>
                     <button
@@ -913,13 +933,13 @@ export default function AdminPage() {
                     </button>
                   </div>
       
-                  <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-[color:var(--muted)] mb-2">
+                  <div className="grid grid-cols-7 gap-2 text-center text-sm font-medium text-[color:var(--muted)] mb-2">
                     {["日", "一", "二", "三", "四", "五", "六"].map((d) => (
-                      <div key={d}>{d}</div>
+                      <div key={d} className="py-2">{d}</div>
                     ))}
                   </div>
       
-                  <div className="grid grid-cols-7 gap-1 flex-1 auto-rows-fr overflow-y-auto no-scrollbar">
+                  <div className="grid grid-cols-7 gap-2 flex-1 auto-rows-fr overflow-y-auto no-scrollbar pb-2">
                     {calendarDays.map((day) => {
                       const dStr = format(day, "yyyy-MM-dd");
                       const dayNotes = notesByDate[dStr] || [];
@@ -929,11 +949,11 @@ export default function AdminPage() {
                       return (
                         <div
                           key={dStr}
-                          className={`border rounded p-1 flex flex-col overflow-hidden cursor-pointer transition-colors ${
+                          className={`border rounded-xl p-2 flex flex-col overflow-hidden cursor-pointer transition-all min-h-[100px] ${
                             isCurMonth
-                              ? "border-[color:var(--border)] bg-[color:var(--panel)] hover:bg-[color:color-mix(in_srgb,var(--panel)_80%,transparent)]"
-                              : "border-transparent opacity-40"
-                          } ${isTodayDay ? "ring-1 ring-[color:var(--accent)]" : ""}`}
+                              ? "border-[color:var(--border)] bg-[color:var(--panel)] hover:bg-[color:color-mix(in_srgb,var(--panel)_80%,transparent)] shadow-sm"
+                              : "border-transparent opacity-40 bg-[color:color-mix(in_srgb,var(--panel)_30%,transparent)]"
+                          } ${isTodayDay ? "ring-2 ring-[color:var(--accent)]" : ""}`}
                           onClick={() => {
                             const now = new Date();
                             day.setHours(now.getHours(), now.getMinutes());
@@ -947,17 +967,17 @@ export default function AdminPage() {
                           }}
                         >
                           <div
-                            className={`text-right text-[10px] mb-1 ${
-                              isTodayDay ? "text-[color:var(--accent)] font-bold" : ""
+                            className={`text-right text-sm mb-2 ${
+                              isTodayDay ? "text-[color:var(--accent)] font-bold" : "text-[color:var(--muted)] font-medium"
                             }`}
                           >
                             {format(day, "d")}
                           </div>
-                          <div className="flex flex-col gap-1 overflow-y-auto no-scrollbar">
+                          <div className="flex flex-col gap-1.5 overflow-y-auto no-scrollbar">
                             {dayNotes.map((n) => (
                               <div
                                 key={n.id}
-                                className="text-[10px] truncate rounded bg-[color:color-mix(in_srgb,var(--accent)_20%,transparent)] px-1 py-0.5 text-[color:var(--accent)]"
+                                className="text-xs truncate rounded-md bg-[color:color-mix(in_srgb,var(--accent)_15%,transparent)] hover:bg-[color:color-mix(in_srgb,var(--accent)_25%,transparent)] px-2 py-1 text-[color:var(--accent)] transition-colors"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setViewingId(n.id);
@@ -1133,55 +1153,156 @@ export default function AdminPage() {
 
         {tab === "plans" && (
           <div className="card p-5">
-            <div className="text-base font-semibold tracking-tight">
-              今日工作计划
-            </div>
-            <div className="mt-2 text-xs text-[color:var(--muted)]">
-              可规定时间段，勾选完成。
-            </div>
-
-            <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-[140px_140px_1fr_auto]">
-              <input
-                className="rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3"
-                type="time"
-                value={planStart}
-                onChange={(e) => setPlanStart(e.target.value)}
-              />
-              <input
-                className="rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3"
-                type="time"
-                value={planEnd}
-                onChange={(e) => setPlanEnd(e.target.value)}
-              />
-              <input
-                className="rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3"
-                value={planTitle}
-                onChange={(e) => setPlanTitle(e.target.value)}
-                placeholder="计划事项"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") addPlan();
-                }}
-              />
-              <button className="button buttonPrimary" onClick={addPlan}>
-                添加
-              </button>
-            </div>
-
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-              <SortableContext items={plans.map((p) => p.id)} strategy={verticalListSortingStrategy}>
-                <div className="mt-5 flex flex-col gap-2">
-                  {plans.length ? (
-                    plans.map((p) => (
-                      <SortablePlanItem key={p.id} plan={p} updatePlan={updatePlan} deletePlan={deletePlan} />
-                    ))
-                  ) : (
-                    <div className="text-sm text-[color:var(--muted)]">
-                      今天还没有计划。
-                    </div>
-                  )}
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <div className="text-base font-semibold tracking-tight">
+                  工作计划
                 </div>
-              </SortableContext>
-            </DndContext>
+                <div className="mt-2 text-xs text-[color:var(--muted)]">
+                  可规定时间段，勾选完成。
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  className={`text-xs px-2 py-1 rounded ${planViewMode === "list" ? "bg-[color:var(--accent)] text-white" : "bg-[color:var(--panel)]"}`}
+                  onClick={() => setPlanViewMode("list")}
+                >
+                  列表
+                </button>
+                <button
+                  className={`text-xs px-2 py-1 rounded ${planViewMode === "calendar" ? "bg-[color:var(--accent)] text-white" : "bg-[color:var(--panel)]"}`}
+                  onClick={() => setPlanViewMode("calendar")}
+                >
+                  日历
+                </button>
+              </div>
+            </div>
+
+            {planViewMode === "list" ? (
+              <>
+                <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-[140px_140px_140px_1fr_auto]">
+                  <input
+                    type="date"
+                    className="rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3 text-sm"
+                    value={planDate}
+                    onChange={(e) => setPlanDate(e.target.value)}
+                  />
+                  <input
+                    className="rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3 text-sm"
+                    type="time"
+                    value={planStart}
+                    onChange={(e) => setPlanStart(e.target.value)}
+                  />
+                  <input
+                    className="rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3 text-sm"
+                    type="time"
+                    value={planEnd}
+                    onChange={(e) => setPlanEnd(e.target.value)}
+                  />
+                  <input
+                    className="rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3"
+                    value={planTitle}
+                    onChange={(e) => setPlanTitle(e.target.value)}
+                    placeholder="计划事项"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") addPlan();
+                    }}
+                  />
+                  <button className="button buttonPrimary" onClick={addPlan}>
+                    添加
+                  </button>
+                </div>
+
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                  <SortableContext items={plans.map((p) => p.id)} strategy={verticalListSortingStrategy}>
+                    <div className="mt-5 flex flex-col gap-2">
+                      {plans.length ? (
+                        plans.map((p) => (
+                          <SortablePlanItem key={p.id} plan={p} updatePlan={updatePlan} deletePlan={deletePlan} />
+                        ))
+                      ) : (
+                        <div className="text-sm text-[color:var(--muted)]">
+                          {planDate === todayYmd() ? "今天还没有计划。" : "该日期没有计划。"}
+                        </div>
+                      )}
+                    </div>
+                  </SortableContext>
+                </DndContext>
+              </>
+            ) : (
+              <div className="flex flex-col flex-1 mt-5 h-[70vh] min-h-[600px] overflow-hidden">
+                <div className="flex items-center justify-between mb-4">
+                  <button
+                    className="button px-2"
+                    onClick={() => setCalendarMonth((m) => subMonths(m, 1))}
+                  >
+                    &lt;
+                  </button>
+                  <div className="text-base font-semibold text-center">
+                    {format(calendarMonth, "yyyy年MM月")}
+                  </div>
+                  <button
+                    className="button px-2"
+                    onClick={() => setCalendarMonth((m) => addMonths(m, 1))}
+                  >
+                    &gt;
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-7 gap-2 text-center text-sm font-medium text-[color:var(--muted)] mb-2">
+                  {["日", "一", "二", "三", "四", "五", "六"].map((d) => (
+                    <div key={d} className="py-2">{d}</div>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-7 gap-2 flex-1 auto-rows-fr overflow-y-auto no-scrollbar pb-2">
+                  {calendarDays.map((day) => {
+                    const dStr = format(day, "yyyy-MM-dd");
+                    const dayPlans = plansByDate[dStr] || [];
+                    const isCurMonth = isSameMonth(day, calendarMonth);
+                    const isTodayDay = isToday(day);
+
+                    return (
+                      <div
+                        key={dStr}
+                        className={`border rounded-xl p-2 flex flex-col overflow-hidden cursor-pointer transition-all min-h-[100px] ${
+                          isCurMonth
+                            ? "border-[color:var(--border)] bg-[color:var(--panel)] hover:bg-[color:color-mix(in_srgb,var(--panel)_80%,transparent)] shadow-sm"
+                            : "border-transparent opacity-40 bg-[color:color-mix(in_srgb,var(--panel)_30%,transparent)]"
+                        } ${isTodayDay ? "ring-2 ring-[color:var(--accent)]" : ""}`}
+                        onClick={() => {
+                          setPlanDate(dStr);
+                          setPlanViewMode("list");
+                        }}
+                      >
+                        <div
+                          className={`text-right text-sm mb-2 ${
+                            isTodayDay ? "text-[color:var(--accent)] font-bold" : "text-[color:var(--muted)] font-medium"
+                          }`}
+                        >
+                          {format(day, "d")}
+                        </div>
+                        <div className="flex flex-col gap-1.5 overflow-y-auto no-scrollbar">
+                          {dayPlans.map((p) => (
+                            <div
+                              key={p.id}
+                              className={`text-xs truncate rounded-md px-2 py-1 transition-colors ${
+                                p.done
+                                  ? "bg-[color:color-mix(in_srgb,var(--muted)_15%,transparent)] text-[color:var(--muted)] line-through"
+                                  : "bg-[color:color-mix(in_srgb,var(--accent)_15%,transparent)] hover:bg-[color:color-mix(in_srgb,var(--accent)_25%,transparent)] text-[color:var(--accent)]"
+                              }`}
+                              title={`${p.startTime} ${p.title}`}
+                            >
+                              {p.startTime} {p.title}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

@@ -11,7 +11,7 @@
 - **前端框架**：`Next.js 15` (App Router) + `React 19`
 - **样式库**：`Tailwind CSS v4` + `Lucide-React` 图标
 - **数据库**：`PostgreSQL`（通过 `Neon Serverless` 连接）用于结构化数据；`IndexedDB` (`idb`) 用于客户端高隐私数据
-- **组件与中间件**：`@dnd-kit`（拖拽排序）、`recharts`（数据可视化）、`html2canvas` + `jspdf`（图片处理与导出）
+- **组件与中间件**：`@dnd-kit`（拖拽排序）、`recharts`（数据可视化）、`@vercel/blob`（云端文件存储）
 - **部署方式**：全静态构建或通过 `Vercel` / `Docker` 进行 Serverless 部署
 
 **运行环境要求**：
@@ -25,9 +25,9 @@
    ```
 2. 复制环境变量模板并填入配置：
    ```bash
-   cp .env.example .env
+   cp .env.example .env.local
    ```
-   *注意：你必须配置 `DATABASE_URL`（PostgreSQL 连接串）与 `ADMIN_PASSWORD`（后台登录密码）。*
+   *注意：你必须配置 `DATABASE_URL`（PostgreSQL 连接串）、`ADMIN_PASSWORD`（后台登录密码）以及 `BLOB_READ_WRITE_TOKEN`（Vercel Blob 存储凭证）。*
 3. 启动本地开发服务器：
    ```bash
    npm run dev
