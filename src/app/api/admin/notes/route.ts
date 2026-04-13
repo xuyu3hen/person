@@ -28,6 +28,9 @@ function sanitizeNote(input: unknown) {
         .filter(Boolean)
         .slice(0, 20)
     : [];
+  const createdAt = typeof obj.createdAt === "string" && !isNaN(Date.parse(obj.createdAt))
+    ? new Date(obj.createdAt).toISOString()
+    : null;
 
   if (!title) throw Object.assign(new Error("title is required"), { status: 400 });
   if (title.length > 200)
@@ -35,7 +38,7 @@ function sanitizeNote(input: unknown) {
   if (content.length > 200_000)
     throw Object.assign(new Error("content is too long"), { status: 400 });
 
-  return { title, content, visibility, tags };
+  return { title, content, visibility, tags, createdAt };
 }
 
 function getErrorStatus(e: unknown) {
@@ -88,6 +91,7 @@ export async function POST(req: NextRequest) {
     await ensureSchema();
     const sql = getSql();
     const now = new Date().toISOString();
+    const created_at = cleaned.createdAt || now;
     const id = randomUUID();
 
     const result = await sql`
@@ -98,7 +102,7 @@ export async function POST(req: NextRequest) {
         ${cleaned.content},
         ${cleaned.visibility},
         ${JSON.stringify(cleaned.tags)}::jsonb,
-        ${now}::timestamptz,
+        ${created_at}::timestamptz,
         ${now}::timestamptz
       )
       RETURNING id, title, content, visibility, tags, created_at, updated_at;

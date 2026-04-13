@@ -1,6 +1,19 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import {
+  format,
+  parseISO,
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  eachDayOfInterval,
+  isSameMonth,
+  isToday,
+  addMonths,
+  subMonths,
+} from "date-fns";
 import { DailyChart } from "@/components/DailyChart";
 import { BodyShapeTab } from "@/components/admin/BodyShapeTab";
 import { PapersTab } from "@/components/admin/PapersTab";
@@ -215,6 +228,9 @@ export default function AdminPage() {
   const [noteTags, setNoteTags] = useState("");
   const [noteContent, setNoteContent] = useState("");
   const [noteSearch, setNoteSearch] = useState("");
+  const [noteCreatedAt, setNoteCreatedAt] = useState("");
+  const [noteView, setNoteView] = useState<"list" | "calendar">("list");
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date());
 
   const filteredNotes = useMemo(() => {
     if (!noteSearch.trim()) return notes;
@@ -227,8 +243,15 @@ export default function AdminPage() {
     );
   }, [notes, noteSearch]);
 
-  const [planStart, setPlanStart] = useState("09:00");
-  const [planEnd, setPlanEnd] = useState("10:00");
+  const [planStart, setPlanStart] = useState(() => {
+    const d = new Date();
+    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  });
+  const [planEnd, setPlanEnd] = useState(() => {
+    const d = new Date();
+    d.setHours(d.getHours() + 1);
+    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  });
   const [planTitle, setPlanTitle] = useState("");
 
   const [dailyDate, setDailyDate] = useState(todayYmd());
@@ -282,6 +305,19 @@ export default function AdminPage() {
     setNoteVisibility(editingNote.visibility);
     setNoteTags(editingNote.tags.join(", "));
     setNoteContent(editingNote.content);
+    
+    // Convert UTC created_at to local datetime-local format
+    const d = new Date(editingNote.createdAt);
+    if (!isNaN(d.getTime())) {
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      const hh = String(d.getHours()).padStart(2, "0");
+      const min = String(d.getMinutes()).padStart(2, "0");
+      setNoteCreatedAt(`${yyyy}-${mm}-${dd}T${hh}:${min}`);
+    } else {
+      setNoteCreatedAt("");
+    }
   }, [editingNote]);
 
   useEffect(() => {
@@ -313,6 +349,22 @@ export default function AdminPage() {
       setStatus(`同步失败：${errorMessage(e)}`);
     }
   }
+
+  const notesByDate = useMemo(() => {
+    const map: Record<string, Note[]> = {};
+    notes.forEach((n) => {
+      const d = format(parseISO(n.createdAt), "yyyy-MM-dd");
+      if (!map[d]) map[d] = [];
+      map[d].push(n);
+    });
+    return map;
+  }, [notes]);
+
+  const calendarDays = useMemo(() => {
+    const start = startOfWeek(startOfMonth(calendarMonth));
+    const end = endOfWeek(endOfMonth(calendarMonth));
+    return eachDayOfInterval({ start, end });
+  }, [calendarMonth]);
 
   async function onLogin() {
     setStatus("登录中…");
@@ -357,6 +409,7 @@ export default function AdminPage() {
           .split(",")
           .map((s) => s.trim())
           .filter(Boolean),
+        createdAt: noteCreatedAt ? new Date(noteCreatedAt).toISOString() : undefined,
       };
       if (editingId) {
         await api(`/api/admin/notes/${encodeURIComponent(editingId)}/`,
@@ -376,6 +429,7 @@ export default function AdminPage() {
       setNoteVisibility("private");
       setNoteTags("");
       setNoteContent("");
+      setNoteCreatedAt("");
       await refreshAll();
       setStatus("已保存");
     } catch (e: unknown) {
@@ -398,6 +452,7 @@ export default function AdminPage() {
         setNoteVisibility("private");
         setNoteTags("");
         setNoteContent("");
+        setNoteCreatedAt("");
       }
       if (viewingId === id) {
         setViewingId("");
@@ -662,85 +717,182 @@ export default function AdminPage() {
             <div className="card p-5 flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <div className="text-base font-semibold tracking-tight">笔记列表</div>
-                <div className="text-xs text-[color:var(--muted)]">
-                  {filteredNotes.length} / {notes.length} 条
+                <div className="flex items-center gap-2">
+                  <button
+                    className={`text-xs px-2 py-1 rounded ${noteView === "list" ? "bg-[color:var(--accent)] text-white" : "bg-[color:var(--panel)]"}`}
+                    onClick={() => setNoteView("list")}
+                  >
+                    列表
+                  </button>
+                  <button
+                    className={`text-xs px-2 py-1 rounded ${noteView === "calendar" ? "bg-[color:var(--accent)] text-white" : "bg-[color:var(--panel)]"}`}
+                    onClick={() => setNoteView("calendar")}
+                  >
+                    日历
+                  </button>
                 </div>
               </div>
-              <input
-                className="rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-2 text-sm"
-                placeholder="搜索笔记 (标题/内容/标签)..."
-                value={noteSearch}
-                onChange={(e) => setNoteSearch(e.target.value)}
-              />
-              <div className="flex flex-col gap-2 max-h-[70vh] overflow-y-auto pr-2">
-                {filteredNotes.length ? (
-                  filteredNotes.map((n) => (
-                    <div
-                      key={n.id}
-                      className={`card p-4 cursor-pointer border ${viewingId === n.id || editingId === n.id ? "border-[color:var(--accent)]" : "border-transparent"}`}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => {
-                        setEditingId("");
-                        setViewingId(n.id);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          setEditingId("");
-                          setViewingId(n.id);
-                        }
-                      }}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <div className="text-sm font-semibold tracking-tight">
-                            {n.title}
-                          </div>
-                          <div className="mt-1 text-xs text-[color:var(--muted)]">
-                            {n.visibility} · {new Date(n.createdAt).toLocaleString()}
-                          </div>
-                          {n.tags.length ? (
-                            <div className="mt-2 flex flex-wrap gap-2">
-                              {n.tags.map((t) => (
-                                <span
-                                  key={t}
-                                  className="rounded-full border border-[color:var(--border)] bg-[color:color-mix(in_srgb,var(--panel)_70%,transparent)] px-3 py-1 text-xs font-mono text-[color:var(--muted)]"
-                                >
-                                  {t}
-                                </span>
-                              ))}
+              
+              {noteView === "list" ? (
+                <>
+                  <input
+                    className="rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-2 text-sm"
+                    placeholder="搜索笔记 (标题/内容/标签)..."
+                    value={noteSearch}
+                    onChange={(e) => setNoteSearch(e.target.value)}
+                  />
+                  <div className="flex flex-col gap-2 max-h-[70vh] overflow-y-auto pr-2 no-scrollbar">
+                    {filteredNotes.length ? (
+                      filteredNotes.map((n) => (
+                        <div
+                          key={n.id}
+                          className={`card p-4 cursor-pointer border ${viewingId === n.id || editingId === n.id ? "border-[color:var(--accent)]" : "border-transparent"}`}
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => {
+                            setEditingId("");
+                            setViewingId(n.id);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              setEditingId("");
+                              setViewingId(n.id);
+                            }
+                          }}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <div className="text-sm font-semibold tracking-tight">
+                                {n.title}
+                              </div>
+                              <div className="mt-1 text-xs text-[color:var(--muted)]">
+                                {n.visibility} · {new Date(n.createdAt).toLocaleString()}
+                              </div>
+                              {n.tags.length ? (
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                  {n.tags.map((t) => (
+                                    <span
+                                      key={t}
+                                      className="rounded-full border border-[color:var(--border)] bg-[color:color-mix(in_srgb,var(--panel)_70%,transparent)] px-3 py-1 text-xs font-mono text-[color:var(--muted)]"
+                                    >
+                                      {t}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : null}
                             </div>
-                          ) : null}
+                            <div className="flex flex-col gap-2 whitespace-nowrap">
+                              <button
+                                className="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingId(n.id);
+                                  setViewingId("");
+                                }}
+                              >
+                                编辑
+                              </button>
+                              <button
+                                className="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteNote(n.id);
+                                }}
+                              >
+                                删除
+                              </button>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex flex-col gap-2 whitespace-nowrap">
-                          <button
-                            className="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setEditingId(n.id);
-                              setViewingId("");
-                            }}
-                          >
-                            编辑
-                          </button>
-                          <button
-                            className="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteNote(n.id);
-                            }}
-                          >
-                            删除
-                          </button>
-                        </div>
-                      </div>
+                      ))
+                    ) : (
+                      <div className="text-sm text-[color:var(--muted)]">暂无笔记</div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col flex-1 h-[70vh] overflow-hidden">
+                  <div className="flex items-center justify-between mb-4">
+                    <button
+                      className="button px-2"
+                      onClick={() => setCalendarMonth((m) => subMonths(m, 1))}
+                    >
+                      &lt;
+                    </button>
+                    <div className="text-sm font-semibold text-center">
+                      {format(calendarMonth, "yyyy年MM月")}
                     </div>
-                  ))
-                ) : (
-                  <div className="text-sm text-[color:var(--muted)]">暂无笔记</div>
-                )}
-              </div>
+                    <button
+                      className="button px-2"
+                      onClick={() => setCalendarMonth((m) => addMonths(m, 1))}
+                    >
+                      &gt;
+                    </button>
+                  </div>
+      
+                  <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-[color:var(--muted)] mb-2">
+                    {["日", "一", "二", "三", "四", "五", "六"].map((d) => (
+                      <div key={d}>{d}</div>
+                    ))}
+                  </div>
+      
+                  <div className="grid grid-cols-7 gap-1 flex-1 auto-rows-fr overflow-y-auto no-scrollbar">
+                    {calendarDays.map((day) => {
+                      const dStr = format(day, "yyyy-MM-dd");
+                      const dayNotes = notesByDate[dStr] || [];
+                      const isCurMonth = isSameMonth(day, calendarMonth);
+                      const isTodayDay = isToday(day);
+      
+                      return (
+                        <div
+                          key={dStr}
+                          className={`border rounded p-1 flex flex-col overflow-hidden cursor-pointer transition-colors ${
+                            isCurMonth
+                              ? "border-[color:var(--border)] bg-[color:var(--panel)] hover:bg-[color:color-mix(in_srgb,var(--panel)_80%,transparent)]"
+                              : "border-transparent opacity-40"
+                          } ${isTodayDay ? "ring-1 ring-[color:var(--accent)]" : ""}`}
+                          onClick={() => {
+                            const now = new Date();
+                            day.setHours(now.getHours(), now.getMinutes());
+                            setNoteCreatedAt(format(day, "yyyy-MM-dd'T'HH:mm"));
+                            setEditingId("");
+                            setNoteTitle("");
+                            setNoteContent("");
+                            setNoteTags("");
+                            setNoteVisibility("private");
+                            setViewingId("");
+                          }}
+                        >
+                          <div
+                            className={`text-right text-[10px] mb-1 ${
+                              isTodayDay ? "text-[color:var(--accent)] font-bold" : ""
+                            }`}
+                          >
+                            {format(day, "d")}
+                          </div>
+                          <div className="flex flex-col gap-1 overflow-y-auto no-scrollbar">
+                            {dayNotes.map((n) => (
+                              <div
+                                key={n.id}
+                                className="text-[10px] truncate rounded bg-[color:color-mix(in_srgb,var(--accent)_20%,transparent)] px-1 py-0.5 text-[color:var(--accent)]"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setViewingId(n.id);
+                                  setEditingId("");
+                                }}
+                                title={n.title}
+                              >
+                                {n.title}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             {viewingNote ? (
@@ -768,6 +920,7 @@ export default function AdminPage() {
                         setNoteTags("");
                         setNoteContent("");
                         setViewingId("");
+                        setNoteCreatedAt("");
                       }}
                       disabled={isSavingNote}
                     >
@@ -808,6 +961,7 @@ export default function AdminPage() {
                           setNoteVisibility("private");
                           setNoteTags("");
                           setNoteContent("");
+                          setNoteCreatedAt("");
                         }}
                         disabled={isSavingNote}
                       >
@@ -827,12 +981,20 @@ export default function AdminPage() {
                   </div>
                 )}
 
-                <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2">
+                <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto_auto]">
                   <input
                     className="rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3"
                     value={noteTitle}
                     onChange={(e) => setNoteTitle(e.target.value)}
                     placeholder="标题"
+                    disabled={isSavingNote}
+                  />
+                  <input
+                    type="datetime-local"
+                    className="rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3 text-sm min-w-[200px]"
+                    value={noteCreatedAt}
+                    onChange={(e) => setNoteCreatedAt(e.target.value)}
+                    disabled={isSavingNote}
                   />
                   <select
                     className="rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3"
@@ -840,16 +1002,18 @@ export default function AdminPage() {
                     onChange={(e) =>
                       setNoteVisibility(e.target.value as NoteVisibility)
                     }
+                    disabled={isSavingNote}
                   >
                     <option value="private">私有</option>
                     <option value="public">可展示</option>
-                  </select>
-                  <input
-                    className="md:col-span-2 rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3"
-                    value={noteTags}
-                    onChange={(e) => setNoteTags(e.target.value)}
-                    placeholder="标签（逗号分隔）"
-                  />
+                </select>
+                <input
+                  className="md:col-span-3 rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3"
+                  value={noteTags}
+                  onChange={(e) => setNoteTags(e.target.value)}
+                  placeholder="标签（逗号分隔）"
+                  disabled={isSavingNote}
+                />
                 </div>
 
                 <div className="flex flex-col gap-3 mt-3">
@@ -873,6 +1037,7 @@ export default function AdminPage() {
                       setNoteVisibility("private");
                       setNoteTags("");
                       setNoteContent("");
+                      setNoteCreatedAt("");
                     }}
                     disabled={isSavingNote}
                   >

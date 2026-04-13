@@ -25,6 +25,7 @@ async function fetchNasaEarthImage() {
     const items = data.collection?.items || [];
     
     // 过滤出含有地球图像的有效条目 (尽量避免包含“award”等无关人物照片)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const validItems = items.filter((item: any) => {
       const title = item.data[0]?.title?.toLowerCase() || '';
       const desc = item.data[0]?.description?.toLowerCase() || '';

@@ -8,6 +8,7 @@ import {
 
 // Mock IDB implementation for testing
 vi.mock('idb', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mockStore = new Map<string, any>();
   return {
     openDB: vi.fn().mockResolvedValue({
