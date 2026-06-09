@@ -16,6 +16,7 @@ import {
 } from "date-fns";
 import { DailyChart } from "@/components/DailyChart";
 import { BodyShapeTab } from "@/components/admin/BodyShapeTab";
+import { BookNotesTab } from "@/components/admin/BookNotesTab";
 import { PapersTab } from "@/components/admin/PapersTab";
 
 import {
@@ -209,7 +210,7 @@ export default function AdminPage() {
   const [checking, setChecking] = useState(true);
   const [authed, setAuthed] = useState(false);
   const [status, setStatus] = useState<string>("");
-  const [tab, setTab] = useState<"notes" | "plans" | "daily" | "bodyshape" | "papers" | "documents">("notes");
+  const [tab, setTab] = useState<"notes" | "plans" | "daily" | "bodyshape" | "books" | "papers" | "documents">("notes");
 
   const [notes, setNotes] = useState<Note[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -784,6 +785,12 @@ export default function AdminPage() {
             onClick={() => setTab("bodyshape")}
           >
             体型记录
+          </button>
+          <button
+            className={`text-left px-4 py-3 rounded-xl transition-colors ${tab === "books" ? "bg-[color:var(--accent)] text-white" : "hover:bg-[color:var(--panel)]"}`}
+            onClick={() => setTab("books")}
+          >
+            读书笔记
           </button>
           <button
             className={`text-left px-4 py-3 rounded-xl transition-colors ${tab === "papers" ? "bg-[color:var(--accent)] text-white" : "hover:bg-[color:var(--panel)]"}`}
@@ -1432,6 +1439,7 @@ export default function AdminPage() {
         )}
 
         {tab === "bodyshape" && <BodyShapeTab />}
+        {tab === "books" && <BookNotesTab />}
         {tab === "papers" && <PapersTab />}
         
         {tab === "documents" && (

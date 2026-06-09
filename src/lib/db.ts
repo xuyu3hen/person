@@ -132,6 +132,27 @@ export async function ensureSchema() {
       CREATE INDEX IF NOT EXISTS journal_documents_type_created_at_idx
       ON journal_documents (type, created_at DESC);
     `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS journal_books (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        author TEXT NOT NULL DEFAULT '',
+        isbn TEXT DEFAULT '',
+        rating SMALLINT DEFAULT 0 CHECK (rating >= 0 AND rating <= 5),
+        notes TEXT DEFAULT '',
+        status TEXT NOT NULL DEFAULT 'reading' CHECK (status IN ('want','reading','finished','dropped')),
+        started_at DATE,
+        finished_at DATE,
+        created_at TIMESTAMPTZ NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL
+      );
+    `;
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS journal_books_status_created_at_idx
+      ON journal_books (status, created_at DESC);
+    `;
   })();
   return schemaEnsured;
 }
