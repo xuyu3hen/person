@@ -123,6 +123,47 @@ body::before {
   color: transparent;
 }
 
+/* 暗色模式霓虹光晕 - 仅在暗色主题下生效 */
+:root .heroTitle,
+[data-theme="anthropic-dark"] .heroTitle,
+[data-theme="monochrome"] .heroTitle {
+  text-shadow:
+    0 0 7px color-mix(in srgb, var(--accent) 50%, transparent),
+    0 0 20px color-mix(in srgb, var(--accent) 30%, transparent),
+    0 0 40px color-mix(in srgb, var(--accent) 15%, transparent),
+    0 0 80px color-mix(in srgb, var(--accent) 8%, transparent);
+  animation: neonPulse 3s ease-in-out infinite alternate;
+}
+
+[data-theme="light"] .heroTitle,
+[data-theme="anthropic-light"] .heroTitle {
+  text-shadow: none;
+  animation: none;
+}
+
+@keyframes neonPulse {
+  0% {
+    text-shadow:
+      0 0 7px color-mix(in srgb, var(--accent) 50%, transparent),
+      0 0 20px color-mix(in srgb, var(--accent) 30%, transparent),
+      0 0 40px color-mix(in srgb, var(--accent) 15%, transparent),
+      0 0 80px color-mix(in srgb, var(--accent) 8%, transparent);
+  }
+  100% {
+    text-shadow:
+      0 0 12px color-mix(in srgb, var(--accent) 65%, transparent),
+      0 0 30px color-mix(in srgb, var(--accent) 40%, transparent),
+      0 0 55px color-mix(in srgb, var(--accent) 22%, transparent),
+      0 0 100px color-mix(in srgb, var(--accent) 12%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroTitle {
+    animation: none !important;
+  }
+}
+
 .card {
   border-radius: 12px;
   border: 1px solid var(--border);

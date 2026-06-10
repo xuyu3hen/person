@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import "./globals.css";
+import { CommandPalette } from "@/components/CommandPalette";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
 
 export const dynamic = "force-static";
@@ -41,6 +42,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-[color:var(--bg)] text-[color:var(--text)]">
         <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem>
           {children}
+          <CommandPalette />
         </ThemeProvider>
       </body>
     </html>

@@ -71,8 +71,7 @@ export const site = {
   name: "迷亭桑的梦想生活",
   title: "Journal · Plans · Life",
   tagline: "记录日常，整理计划，慢慢生活。",
-  intro:
-    "这里用来记录日记、今天的工作计划，以及一些随手的想法与项目。内容会持续更新，也尽量保持简单、清爽。",
+  intro: "",
   location: "China",
   timezone: "UTC+8",
   email: "yu3hen@126.com",
