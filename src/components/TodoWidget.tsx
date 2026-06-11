@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useSyncExternalStore, useRef, useState, useTransition } from "react";
+import { useCallback, useSyncExternalStore, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, Plus, Trash2 } from "lucide-react";
 
@@ -41,7 +41,7 @@ export function TodoWidget() {
 
   // Use useSyncExternalStore to detect hydration without calling setState in effect
   const hydrated = useSyncExternalStore(
-    (cb) => {
+    () => {
       if (!hydratedRef.current) {
         hydratedRef.current = true;
       }

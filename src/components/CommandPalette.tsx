@@ -150,9 +150,12 @@ export function CommandPalette() {
     }
   }, [open]);
 
-  useEffect(() => {
+  // Reset active index when query changes — derived state, not in effect
+  const prevQueryRef = useRef(query);
+  if (prevQueryRef.current !== query) {
+    prevQueryRef.current = query;
     setActiveIndex(0);
-  }, [query]);
+  }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {
