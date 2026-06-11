@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useSyncExternalStore, useRef, useState, useTransition } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, Plus, Trash2 } from "lucide-react";
 
@@ -37,13 +37,19 @@ function genId(): string {
 export function TodoWidget() {
   const [todos, setTodos] = useState<Todo[]>(loadTodos);
   const [newText, setNewText] = useState("");
-  const [hydrated, setHydrated] = useState(false);
   const hydratedRef = useRef(false);
 
-  useEffect(() => {
-    setHydrated(true);
-    hydratedRef.current = true;
-  }, []);
+  // Use useSyncExternalStore to detect hydration without calling setState in effect
+  const hydrated = useSyncExternalStore(
+    (cb) => {
+      if (!hydratedRef.current) {
+        hydratedRef.current = true;
+      }
+      return () => {};
+    },
+    () => true,
+    () => false
+  );
 
   useEffect(() => {
     if (hydratedRef.current) saveTodos(todos);

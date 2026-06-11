@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { Calendar, ChevronRight, PenLine } from "lucide-react";
 
@@ -92,7 +93,7 @@ function Card({ entry, index }: { entry: DiaryEntry; index: number }) {
       )}
 
       {/* Card */}
-      <a
+      <Link
         href={entry.slug ? `/posts/${entry.slug}` : "#"}
         className="block card p-4 hover:border-[color:var(--accent)] transition-all duration-200"
       >
@@ -113,7 +114,7 @@ function Card({ entry, index }: { entry: DiaryEntry; index: number }) {
           <span>阅读更多</span>
           <ChevronRight size={12} />
         </div>
-      </a>
+      </Link>
     </motion.div>
   );
 }
@@ -133,13 +134,13 @@ export function TimelineDiary() {
             <Card key={entry.date} entry={entry} index={i} />
           ))}
         </div>
-        <a
+        <Link
           href="/posts"
           className="inline-flex items-center gap-1.5 mt-6 text-sm text-[color:var(--muted)] hover:text-[color:var(--accent)] transition-colors"
         >
           <span>查看全部日记</span>
           <ChevronRight size={14} />
-        </a>
+        </Link>
       </div>
     </section>
   );

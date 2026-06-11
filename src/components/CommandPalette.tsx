@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -26,6 +27,7 @@ interface Command {
 }
 
 export function CommandPalette() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
@@ -38,7 +40,7 @@ export function CommandPalette() {
       label: "回到首页",
       description: "跳转到首页",
       icon: <Home size={16} />,
-      action: () => scrollToSection("home"),
+      action: () => scrollToSection("home", router),
       keywords: ["home", "index", "首页", "主页"],
     },
     {
@@ -46,7 +48,7 @@ export function CommandPalette() {
       label: "关于我",
       description: "了解我的背景和经历",
       icon: <User size={16} />,
-      action: () => scrollToSection("about"),
+      action: () => scrollToSection("about", router),
       keywords: ["about", "关于", "介绍", "背景"],
     },
     {
@@ -54,7 +56,7 @@ export function CommandPalette() {
       label: "研究方向",
       description: "查看我的研究兴趣和方向",
       icon: <FlaskConical size={16} />,
-      action: () => scrollToSection("research"),
+      action: () => scrollToSection("research", router),
       keywords: ["research", "研究", "方向", "兴趣"],
     },
     {
@@ -62,7 +64,7 @@ export function CommandPalette() {
       label: "学术成果",
       description: "查看发表的论文",
       icon: <BookOpen size={16} />,
-      action: () => scrollToSection("publications"),
+      action: () => scrollToSection("publications", router),
       keywords: ["publications", "papers", "论文", "学术", "发表"],
     },
     {
@@ -70,7 +72,7 @@ export function CommandPalette() {
       label: "开源项目",
       description: "浏览我的项目作品",
       icon: <FolderGit2 size={16} />,
-      action: () => scrollToSection("projects"),
+      action: () => scrollToSection("projects", router),
       keywords: ["projects", "项目", "开源", "作品"],
     },
     {
@@ -78,7 +80,7 @@ export function CommandPalette() {
       label: "工作经历",
       description: "查看我的职业经历",
       icon: <Briefcase size={16} />,
-      action: () => scrollToSection("experience"),
+      action: () => scrollToSection("experience", router),
       keywords: ["experience", "工作", "经历", "职业"],
     },
     {
@@ -86,7 +88,7 @@ export function CommandPalette() {
       label: "日记",
       description: "查看我的日记和日常记录",
       icon: <FileText size={16} />,
-      action: () => scrollToSection("diary"),
+      action: () => scrollToSection("diary", router),
       keywords: ["diary", "日记", "日常", "记录"],
     },
     {
@@ -95,7 +97,7 @@ export function CommandPalette() {
       description: "浏览所有文章",
       icon: <FileText size={16} />,
       action: () => {
-        window.location.href = "/posts";
+        router.push("/posts");
       },
       keywords: ["posts", "文章", "blog", "博客"],
     },
@@ -105,7 +107,7 @@ export function CommandPalette() {
       description: "进入管理后台",
       icon: <Settings size={16} />,
       action: () => {
-        window.location.href = "/admin";
+        router.push("/admin");
       },
       keywords: ["admin", "管理", "后台", "设置"],
     },
@@ -298,12 +300,12 @@ export function CommandPalette() {
   );
 }
 
-function scrollToSection(id: string) {
+function scrollToSection(id: string, router?: ReturnType<typeof useRouter>) {
   const el = document.getElementById(id);
   if (el) {
     el.scrollIntoView({ behavior: "smooth", block: "start" });
   } else {
     // Fallback: try navigating to the section on the homepage
-    window.location.href = `/#${id}`;
+    router?.push(`/#${id}`);
   }
 }
