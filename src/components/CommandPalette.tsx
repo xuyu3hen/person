@@ -150,12 +150,10 @@ export function CommandPalette() {
     }
   }, [open]);
 
-  // Reset active index when query changes — derived state, not in effect
-  const prevQueryRef = useRef(query);
-  if (prevQueryRef.current !== query) {
-    prevQueryRef.current = query;
+  const handleQueryChange = useCallback((value: string) => {
+    setQuery(value);
     setActiveIndex(0);
-  }
+  }, []);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {
@@ -222,7 +220,7 @@ export function CommandPalette() {
                     ref={inputRef}
                     type="text"
                     value={query}
-                    onChange={(e) => setQuery(e.target.value)}
+                    onChange={(e) => handleQueryChange(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="输入命令搜索..."
                     className="flex-1 bg-transparent text-sm outline-none placeholder:text-[color:var(--muted)]/50"
