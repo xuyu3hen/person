@@ -12,7 +12,7 @@ function assertAdmin(req: NextRequest) {
   }
 }
 
-export async function GET(_req: NextRequest) {
+export async function GET() {
   try {
     await ensureSchema();
     const sql = getSql();
