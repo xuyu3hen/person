@@ -30,10 +30,13 @@ export function Starfield() {
   const resize = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const parent = canvas.parentElement;
+    if (!parent) return;
     const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.parentElement!.getBoundingClientRect();
+    const rect = parent.getBoundingClientRect();
     const w = rect.width;
     const h = rect.height;
+    if (w === 0 || h === 0) return;
     dimsRef.current = { w, h };
     canvas.width = w * dpr;
     canvas.height = h * dpr;
@@ -63,8 +66,10 @@ export function Starfield() {
     resize();
     initParticles();
 
-    const canvas = canvasRef.current!;
-    const ctx = canvas.getContext("2d")!;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
     const dpr = window.devicePixelRatio || 1;
 
     const onResize = () => {
@@ -72,6 +77,7 @@ export function Starfield() {
       initParticles();
     };
     const onMouseMove = (e: MouseEvent) => {
+      if (!canvas.isConnected) return;
       const rect = canvas.getBoundingClientRect();
       mouseRef.current = {
         x: e.clientX - rect.left,

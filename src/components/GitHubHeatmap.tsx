@@ -64,7 +64,8 @@ function getMonthLabels(days: ContributionDay[]): { label: string; col: number }
   ];
   let lastMonth = -1;
   days.forEach((day, i) => {
-    const month = new Date(day.date).getMonth();
+    const month = new Date(day.date + "T00:00:00").getMonth();
+    if (isNaN(month) || month < 0 || month > 11) return;
     if (month !== lastMonth) {
       months.push({ label: monthNames[month], col: Math.floor(i / 7) });
       lastMonth = month;
@@ -117,10 +118,13 @@ export function GitHubHeatmap({ username }: { username?: string }) {
     fetchData();
   }, [username]);
 
-  const totalContributions = useMemo(
-    () => data.reduce((sum, d) => sum + d.count, 0),
-    [data]
-  );
+  const totalContributions = useMemo(() => {
+    const total = data.reduce((sum, d) => {
+      const count = typeof d.count === "number" && !isNaN(d.count) ? d.count : 0;
+      return sum + count;
+    }, 0);
+    return isNaN(total) ? 0 : total;
+  }, [data]);
 
   const weeks = useMemo(() => {
     const w: ContributionDay[][] = [];
@@ -175,19 +179,20 @@ export function GitHubHeatmap({ username }: { username?: string }) {
         <div className="inline-flex flex-col gap-0.5 min-w-[680px]">
           {/* Month labels */}
           <div className="flex ml-8 mb-0.5">
-            {monthLabels.map((m, i) => (
-              <div
-                key={m.label}
-                className="text-[9px] text-[color:var(--muted)]"
-                style={{
-                  position: "relative",
-                  left: `${m.col * 12}px`,
-                  marginRight: i < monthLabels.length - 1 ? `${(monthLabels[i + 1]?.col ?? m.col) - m.col}ch` : "0",
-                }}
-              >
-                {m.label}
-              </div>
-            ))}
+            {monthLabels.map((m, i) => {
+              const nextCol = i < monthLabels.length - 1 ? monthLabels[i + 1].col : 53;
+              const span = Math.max(nextCol - m.col, 1);
+              const width = isNaN(span) ? 12 : span * 12;
+              return (
+                <div
+                  key={`ml-${i}-${m.label}`}
+                  className="text-[9px] text-[color:var(--muted)]"
+                  style={{ width: `${width}px` }}
+                >
+                  {m.label}
+                </div>
+              );
+            })}
           </div>
 
           {/* Grid with day labels */}

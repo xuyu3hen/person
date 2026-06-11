@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Plus, Trash2, GripVertical } from "lucide-react";
+import { Check, Plus, Trash2 } from "lucide-react";
 
 interface Todo {
   id: string;
@@ -35,18 +35,19 @@ function genId(): string {
 }
 
 export function TodoWidget() {
-  const [todos, setTodos] = useState<Todo[]>([]);
+  const [todos, setTodos] = useState<Todo[]>(loadTodos);
   const [newText, setNewText] = useState("");
   const [hydrated, setHydrated] = useState(false);
+  const hydratedRef = useRef(false);
 
   useEffect(() => {
-    setTodos(loadTodos());
     setHydrated(true);
+    hydratedRef.current = true;
   }, []);
 
   useEffect(() => {
-    if (hydrated) saveTodos(todos);
-  }, [todos, hydrated]);
+    if (hydratedRef.current) saveTodos(todos);
+  }, [todos]);
 
   const addTodo = useCallback(() => {
     const text = newText.trim();

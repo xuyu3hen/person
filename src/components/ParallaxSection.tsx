@@ -22,7 +22,9 @@ export function ParallaxSection({
     offset: ["start end", "end start"],
   });
 
-  const y = useTransform(scrollYProgress, [0, 1], [offset, -offset]);
+  const y = useTransform(scrollYProgress, [0, 1], [offset, -offset], {
+    clamp: false,
+  });
 
   return (
     <motion.div ref={ref} className={className} style={{ y }}>

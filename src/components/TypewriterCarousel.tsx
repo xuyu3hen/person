@@ -34,6 +34,7 @@ export function TypewriterCarousel({
   }, []);
 
   const tick = useCallback(() => {
+    if (texts.length === 0) return;
     const currentText = texts[textIndex];
 
     if (isPaused) {

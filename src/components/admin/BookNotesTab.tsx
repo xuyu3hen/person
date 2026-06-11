@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { BookOpen, Star, Trash2, Pencil, Plus, X, Check } from "lucide-react";
+import { BookOpen, Star, Trash2, Pencil } from "lucide-react";
 
 export type Book = {
   id: string;
