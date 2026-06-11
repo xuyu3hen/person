@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useSyncExternalStore, useRef, useState } from "react";
+import { useCallback, useEffect, useSyncExternalStore, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, Plus, Trash2 } from "lucide-react";
 
