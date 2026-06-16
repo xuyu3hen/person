@@ -210,7 +210,7 @@ export default function AdminPage() {
   const [checking, setChecking] = useState(true);
   const [authed, setAuthed] = useState(false);
   const [status, setStatus] = useState<string>("");
-  const [tab, setTab] = useState<"notes" | "plans" | "daily" | "bodyshape" | "books" | "papers" | "documents">("notes");
+  const [tab, setTab] = useState<"notes" | "plans" | "daily" | "bodyshape" | "books" | "papers" | "documents" | "chat">("notes");
 
   const [notes, setNotes] = useState<Note[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -221,6 +221,10 @@ export default function AdminPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
 
   const [loginPassword, setLoginPassword] = useState("");
+
+  const [chatMessages, setChatMessages] = useState<{ role: string; content: string }[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [isChatLoading, setIsChatLoading] = useState(false);
 
   const [editingId, setEditingId] = useState<string>("");
   const [viewingId, setViewingId] = useState<string>("");
@@ -713,6 +717,30 @@ export default function AdminPage() {
     }
   }
 
+  async function sendChatMessage() {
+    if (!chatInput.trim() || isChatLoading) return;
+    const newMessages = [...chatMessages, { role: "user", content: chatInput }];
+    setChatMessages(newMessages);
+    setChatInput("");
+    setIsChatLoading(true);
+    setStatus("发送中...");
+    try {
+      const data = await api<{ choices: { message: { role: string; content: string } }[] }>("/api/admin/chat/", {
+        method: "POST",
+        body: JSON.stringify({ messages: newMessages }),
+      });
+      const assistantMessage = data.choices?.[0]?.message;
+      if (assistantMessage) {
+        setChatMessages([...newMessages, assistantMessage]);
+      }
+      setStatus("已回复");
+    } catch (e: unknown) {
+      setStatus(`问答失败：${errorMessage(e)}`);
+    } finally {
+      setIsChatLoading(false);
+    }
+  }
+
   if (checking) {
     return (
       <div className="container py-16">
@@ -803,6 +831,12 @@ export default function AdminPage() {
             onClick={() => setTab("documents")}
           >
             简历与证书
+          </button>
+          <button
+            className={`text-left px-4 py-3 rounded-xl transition-colors ${tab === "chat" ? "bg-[color:var(--accent)] text-white" : "hover:bg-[color:var(--panel)]"}`}
+            onClick={() => setTab("chat")}
+          >
+            AI 助手 (DeepSeek)
           </button>
         </div>
         <div className="mt-auto pt-4 border-t border-[color:var(--border)] flex flex-col gap-3">
@@ -1543,6 +1577,62 @@ export default function AdminPage() {
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {tab === "chat" && (
+          <div className="card p-6 flex flex-col gap-5 h-[calc(100vh-3rem)]">
+            <div className="text-lg font-semibold tracking-tight">AI 助手 (DeepSeek)</div>
+            
+            <div className="flex-1 overflow-y-auto rounded-2xl border border-[color:var(--border)] bg-[color:var(--panel)] p-4 flex flex-col gap-4">
+              {chatMessages.length === 0 ? (
+                <div className="text-sm text-[color:var(--muted)] text-center my-auto">
+                  有什么我可以帮你的？
+                </div>
+              ) : (
+                chatMessages.map((msg, idx) => (
+                  <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                    <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-[15px] leading-relaxed ${
+                      msg.role === "user" 
+                        ? "bg-[color:var(--accent)] text-white" 
+                        : "bg-[color:color-mix(in_srgb,var(--panel)_50%,transparent)] border border-[color:var(--border)]"
+                    }`}>
+                      <pre className="whitespace-pre-wrap font-sans">{msg.content}</pre>
+                    </div>
+                  </div>
+                ))
+              )}
+              {isChatLoading && (
+                <div className="flex justify-start">
+                  <div className="max-w-[80%] rounded-2xl px-4 py-3 text-[15px] bg-[color:color-mix(in_srgb,var(--panel)_50%,transparent)] border border-[color:var(--border)]">
+                    <span className="animate-pulse">思考中...</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <input
+                className="flex-1 rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-5 py-3 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                placeholder="输入你的问题..."
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    sendChatMessage();
+                  }
+                }}
+                disabled={isChatLoading}
+              />
+              <button 
+                className="button buttonPrimary px-6" 
+                onClick={sendChatMessage}
+                disabled={isChatLoading || !chatInput.trim()}
+              >
+                发送
+              </button>
             </div>
           </div>
         )}
