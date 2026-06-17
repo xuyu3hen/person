@@ -275,6 +275,8 @@ export default function AdminPage() {
   const [dailyDate, setDailyDate] = useState(todayYmd());
   const [dailyWeight, setDailyWeight] = useState("");
   const [dailyMasturbated, setDailyMasturbated] = useState(false);
+  const [reportGenerating, setReportGenerating] = useState(false);
+  const [aiReport, setAiReport] = useState<string>("");
 
   const [docTitle, setDocTitle] = useState("");
   const [docType, setDocType] = useState("certificate");
@@ -738,6 +740,69 @@ export default function AdminPage() {
       setStatus(`问答失败：${errorMessage(e)}`);
     } finally {
       setIsChatLoading(false);
+    }
+  }
+
+  async function generateAiReport() {
+    setReportGenerating(true);
+    setAiReport("");
+    setStatus("AI 正在分析过去 7 天的数据...");
+    try {
+      const data = await api<{ report: string }>("/api/admin/chat/report/", {
+        method: "POST",
+        body: JSON.stringify({ days: 7 }),
+      });
+      setAiReport(data.report);
+      setStatus("分析报告已生成");
+    } catch (e: unknown) {
+      setStatus(`生成报告失败：${errorMessage(e)}`);
+    } finally {
+      setReportGenerating(false);
+    }
+  }
+
+  async function breakdownPlan(plan: Plan) {
+    if (!plan.title.trim()) return;
+    setStatus(`正在拆解计划：${plan.title}...`);
+    try {
+      const data = await api<{ subtasks: { title: string }[] }>("/api/admin/chat/plan-breakdown/", {
+        method: "POST",
+        body: JSON.stringify({ goal: plan.title, date: plan.date }),
+      });
+      
+      if (data.subtasks && data.subtasks.length > 0) {
+        // 创建子任务的计划
+        const currentTime = new Date();
+        // 尝试从父任务中解析时间
+        if (plan.startTime) {
+          const [h, m] = plan.startTime.split(':').map(Number);
+          currentTime.setHours(h, m, 0, 0);
+        }
+        
+        for (let i = 0; i < data.subtasks.length; i++) {
+          const task = data.subtasks[i];
+          const st = `${String(currentTime.getHours()).padStart(2, "0")}:${String(currentTime.getMinutes()).padStart(2, "0")}`;
+          currentTime.setMinutes(currentTime.getMinutes() + 30);
+          const et = `${String(currentTime.getHours()).padStart(2, "0")}:${String(currentTime.getMinutes()).padStart(2, "0")}`;
+          
+          await api("/api/admin/plans/", {
+            method: "POST",
+            body: JSON.stringify({
+              id: crypto.randomUUID(),
+              date: plan.date,
+              startTime: st,
+              endTime: et,
+              title: `[拆解] ${task.title}`,
+              done: false,
+              sortOrder: plan.sortOrder + i + 1,
+            }),
+          });
+        }
+        await refreshAll();
+        setStatus("计划已成功拆解并添加至日程！");
+      }
+    } catch (e: unknown) {
+      setStatus(`拆解失败：${errorMessage(e)}`);
     }
   }
 
@@ -1259,7 +1324,19 @@ export default function AdminPage() {
                     <div className="mt-5 flex flex-col gap-2">
                       {plans.length ? (
                         plans.map((p) => (
-                          <SortablePlanItem key={p.id} plan={p} updatePlan={updatePlan} deletePlan={deletePlan} />
+                          <div key={p.id} className="group relative">
+                            <SortablePlanItem plan={p} updatePlan={updatePlan} deletePlan={deletePlan} />
+                            <button
+                              className="absolute right-[4.5rem] top-1/2 -translate-y-1/2 text-[10px] text-[color:var(--accent)] opacity-0 group-hover:opacity-100 transition-opacity px-2 py-1 rounded bg-[color:var(--panel)] border border-[color:var(--border)]"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                breakdownPlan(p);
+                              }}
+                              title="使用 DeepSeek 自动拆解任务"
+                            >
+                              AI 拆解
+                            </button>
+                          </div>
                         ))
                       ) : (
                         <div className="text-sm text-[color:var(--muted)]">
@@ -1396,6 +1473,27 @@ export default function AdminPage() {
                 {isSavingDaily ? "保存中..." : `保存 ${dailyDate} 的记录`}
               </button>
             </div>
+
+            <hr className="my-4 border-[color:var(--border)]" />
+            <div className="flex items-center justify-between">
+              <div className="text-md font-semibold tracking-tight">AI 智能周报</div>
+              <button 
+                className="button buttonPrimary text-sm px-4 py-2"
+                onClick={generateAiReport}
+                disabled={reportGenerating}
+              >
+                {reportGenerating ? "生成中..." : "生成过去7天总结"}
+              </button>
+            </div>
+            
+            {aiReport && (
+              <div className="border border-[color:var(--accent)] rounded-xl bg-[color:color-mix(in_srgb,var(--accent)_10%,transparent)] p-5 mt-2">
+                <div className="text-sm font-semibold text-[color:var(--accent)] mb-3">DeepSeek 生活教练点评：</div>
+                <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                  {aiReport}
+                </div>
+              </div>
+            )}
 
             <hr className="my-4 border-[color:var(--border)]" />
             <div className="text-md font-semibold tracking-tight">数据可视化</div>
