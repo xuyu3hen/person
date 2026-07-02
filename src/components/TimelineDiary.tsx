@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Calendar, ChevronRight, PenLine } from "lucide-react";
+import { Calendar, ChevronRight, PenLine, RadioTower, Sparkles } from "lucide-react";
 
 interface DiaryEntry {
   date: string;
@@ -128,21 +128,29 @@ export function TimelineDiary({ diaryEntries }: { diaryEntries?: DiaryEntry[] })
   return (
     <section id="diary" className="section">
       <div className="container py-12">
-        <div className="mb-8">
-          <div className="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--muted)] mb-2">
-            日记
+        <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <div className="sectionEyebrow">Signal Feed</div>
+            <h2 className="mt-4 text-2xl font-semibold tracking-tight sm:text-[34px]">最近记录</h2>
+            <p className="mt-3 max-w-2xl text-[15px] leading-7 text-[color:var(--muted)]">
+              保留最近的想法、进展和日常碎片，让个人主页不只是静态履历，而是一条持续更新的生活信号流。
+            </p>
           </div>
-          <h2 className="text-2xl font-semibold tracking-tight">最近记录</h2>
+          <div className="panelInset flex items-center gap-3 rounded-2xl px-4 py-3 text-sm text-[color:var(--muted)]">
+            <RadioTower size={16} className="text-[color:var(--accent)]" />
+            <span>Latest {entries.length} entries</span>
+          </div>
         </div>
-        <div className="max-w-2xl">
+        <div className="max-w-3xl">
           {entries.map((entry, i) => (
             <Card key={entry.date} entry={entry} index={i} total={entries.length} />
           ))}
         </div>
         <Link
           href="/posts"
-          className="inline-flex items-center gap-1.5 mt-6 text-sm text-[color:var(--muted)] hover:text-[color:var(--accent)] transition-colors"
+          className="mt-8 inline-flex items-center gap-2 rounded-full border border-[color:var(--border)] bg-[color:color-mix(in_srgb,var(--surface)_100%,transparent)] px-4 py-2 text-sm text-[color:var(--muted)] transition-colors hover:text-[color:var(--accent)]"
         >
+          <Sparkles size={14} className="text-[color:var(--accent)]" />
           <span>查看全部日记</span>
           <ChevronRight size={14} />
         </Link>

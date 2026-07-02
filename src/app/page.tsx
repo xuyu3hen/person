@@ -1,7 +1,12 @@
+import type { Metadata } from "next";
+
 import { Footer } from "@/components/Footer";
 import { HomeSections } from "@/components/HomeSections";
 import { TopNav } from "@/components/TopNav";
 import { ensureSchema, getSql } from "@/lib/db";
+import { getSiteContentSafe } from "@/lib/site-content";
+
+export const dynamic = "force-dynamic";
 
 async function getPapers() {
   try {
@@ -53,17 +58,107 @@ async function getDiaryEntries() {
   }
 }
 
+async function getTodayPlans() {
+  try {
+    await ensureSchema();
+    const sql = getSql();
+    const result = await sql`
+      SELECT id, date, start_time, end_time, title, done
+      FROM journal_plans
+      WHERE date = CURRENT_DATE
+      ORDER BY sort_order ASC, start_time NULLS LAST, created_at DESC;
+    `;
+    return result.rows.map((row) => {
+      const r = row as Record<string, unknown>;
+      return {
+        id: String(r.id),
+        date: new Date(String(r.date)).toISOString().slice(0, 10),
+        startTime: r.start_time ? String(r.start_time).slice(0, 5) : "",
+        endTime: r.end_time ? String(r.end_time).slice(0, 5) : "",
+        title: String(r.title),
+        done: r.done === true,
+      };
+    });
+  } catch (e) {
+    console.error("Failed to load today plans:", e);
+    return undefined;
+  }
+}
+
+async function getPublicNotes() {
+  try {
+    await ensureSchema();
+    const sql = getSql();
+    const result = await sql`
+      SELECT id, title, content, tags, created_at
+      FROM journal_notes
+      WHERE visibility = 'public'
+      ORDER BY created_at DESC
+      LIMIT 4;
+    `;
+    return result.rows.map((row) => {
+      const r = row as Record<string, unknown>;
+      return {
+        id: String(r.id),
+        title: String(r.title),
+        summary: String(r.content).replace(/\s+/g, " ").trim().slice(0, 120),
+        tags: Array.isArray(r.tags) ? (r.tags as string[]) : [],
+        createdAt: new Date(String(r.created_at)).toISOString(),
+      };
+    });
+  } catch (e) {
+    console.error("Failed to load public notes:", e);
+    return undefined;
+  }
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const siteContent = (await getSiteContentSafe()).content;
+  const title = siteContent.profile.name;
+  const description =
+    siteContent.profile.tagline || siteContent.hero.description;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      images: [{ url: "/og.svg" }],
+    },
+  };
+}
+
 export default async function Home() {
-  const papers = await getPapers();
-  const diaryEntries = await getDiaryEntries();
+  const [
+    papers,
+    diaryEntries,
+    todayPlans,
+    publicNotes,
+    siteContentRecord,
+  ] = await Promise.all([
+    getPapers(),
+    getDiaryEntries(),
+    getTodayPlans(),
+    getPublicNotes(),
+    getSiteContentSafe(),
+  ]);
+  const siteContent = siteContentRecord.content;
 
   return (
-    <div className="flex flex-col min-h-[100svh]">
-      <TopNav />
+    <div className="appShell flex min-h-[100svh] flex-col">
+      <TopNav siteContent={siteContent} />
       <main className="flex-1">
-        <HomeSections papers={papers} diaryEntries={diaryEntries} />
+        <HomeSections
+          siteContent={siteContent}
+          papers={papers}
+          diaryEntries={diaryEntries}
+          todayPlans={todayPlans}
+          publicNotes={publicNotes}
+        />
       </main>
-      <Footer />
+      <Footer siteContent={siteContent} />
     </div>
   );
 }

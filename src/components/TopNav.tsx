@@ -5,8 +5,7 @@ import Link from "next/link";
 import { useMemo, useState, useEffect } from "react";
 
 import { useActiveSection } from "@/hooks/useActiveSection";
-import { nav } from "@/lib/site-data";
-import { site } from "@/lib/site-data";
+import type { SiteContent } from "@/lib/site-content";
 import type { SectionId } from "@/lib/sections";
 import { scrollToSection } from "@/lib/sections";
 
@@ -14,10 +13,11 @@ import { ThemeToggle } from "./ThemeToggle";
 
 import pkg from "../../package.json";
 
-export function TopNav() {
+export function TopNav({ siteContent }: { siteContent: SiteContent }) {
   const ids = useMemo(
-    () => nav.map((x) => x.id) as unknown as readonly SectionId[],
-    []
+    () =>
+      siteContent.nav.map((x) => x.id).filter((id): id is SectionId => Boolean(id)),
+    [siteContent.nav]
   );
   const activeId = useActiveSection(ids);
   const [open, setOpen] = useState(false);
@@ -36,32 +36,32 @@ export function TopNav() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[color:var(--border)] bg-[color:color-mix(in_srgb,var(--bg)_80%,transparent)] backdrop-blur">
-      <div className="container h-16 flex items-center justify-between">
+    <header className="sticky top-0 z-50 border-b border-[color:color-mix(in_srgb,var(--border)_70%,transparent)] bg-[color:color-mix(in_srgb,var(--bg)_72%,transparent)] backdrop-blur-xl">
+      <div className="container h-[74px] flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => onPick("home")}
-            className="flex items-center justify-center h-9 w-9 rounded-xl border border-[color:color-mix(in_srgb,var(--accent)_35%,var(--border))] bg-[color:color-mix(in_srgb,var(--panel)_70%,transparent)] shadow-[0_0_0_1px_color-mix(in_srgb,var(--accent)_12%,transparent)] text-[10px] font-mono text-[color:var(--muted)] hover:opacity-80 transition-opacity"
+            className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[color:color-mix(in_srgb,var(--accent)_26%,var(--border))] bg-[color:color-mix(in_srgb,var(--panel)_84%,transparent)] shadow-[0_0_0_1px_color-mix(in_srgb,var(--accent)_8%,transparent),0_14px_40px_rgba(2,6,23,0.25)] text-[10px] font-mono text-[color:var(--muted)] transition-all hover:-translate-y-0.5 hover:border-[color:color-mix(in_srgb,var(--accent)_40%,var(--border))] hover:text-[color:var(--text)]"
             aria-label="回到首页"
           >
             v{pkg.version}
           </button>
           <div className="flex flex-col leading-tight">
-            <div className="text-sm font-semibold tracking-tight flex items-center gap-1.5">
-              <button onClick={() => onPick("home")} className="hover:text-[color:var(--accent)] transition-colors text-left">
-                {site.name}
+            <div className="flex items-center gap-1.5 text-sm font-semibold tracking-tight">
+              <button onClick={() => onPick("home")} className="text-left transition-colors hover:text-[color:var(--accent)]">
+                {siteContent.profile.name}
               </button>
-              <Globe size={14} className="animate-[spin_20s_linear_infinite] text-blue-500" />
+              <Globe size={14} className="animate-[spin_20s_linear_infinite] text-[color:var(--accent)]" />
             </div>
-            <div className="text-xs text-[color:var(--muted)] cursor-pointer hover:text-[color:var(--accent)] transition-colors" onClick={() => onPick("home")}>
-              Journal · Plans · Life
+            <div className="cursor-pointer text-[11px] uppercase tracking-[0.22em] text-[color:var(--muted)] transition-colors hover:text-[color:var(--accent)]" onClick={() => onPick("home")}>
+              {siteContent.profile.tagline || "Build · Research · Journal"}
             </div>
           </div>
         </div>
 
-        <nav className="hidden md:flex items-center gap-2">
-          {nav.map((item) => {
+        <nav className="hidden md:flex items-center gap-2 rounded-full border border-[color:color-mix(in_srgb,var(--border)_82%,transparent)] bg-[color:color-mix(in_srgb,var(--panel)_72%,transparent)] px-2 py-2 shadow-[0_12px_40px_rgba(2,6,23,0.18)]">
+          {siteContent.nav.map((item) => {
             const isActive = item.id === activeId;
             return (
               <button
@@ -69,10 +69,10 @@ export function TopNav() {
                 type="button"
                 onClick={() => onPick(item.id as SectionId)}
                 className={
-                  "px-3 py-2 text-sm rounded-full transition-colors border " +
+                  "px-3 py-2 text-sm rounded-full transition-all border " +
                   (isActive
-                    ? "border-transparent bg-[color:color-mix(in_srgb,var(--accent)_18%,transparent)] text-[color:var(--text)]"
-                    : "border-transparent text-[color:var(--muted)] hover:text-[color:var(--text)] hover:bg-[color:var(--panel)]")
+                    ? "border-[color:color-mix(in_srgb,var(--accent)_30%,transparent)] bg-[color:color-mix(in_srgb,var(--accent)_16%,transparent)] text-[color:var(--text)] shadow-[0_8px_20px_color-mix(in_srgb,var(--accent)_10%,transparent)]"
+                    : "border-transparent text-[color:var(--muted)] hover:text-[color:var(--text)] hover:bg-[color:color-mix(in_srgb,var(--surface)_100%,transparent)]")
                 }
               >
                 {item.label}
@@ -81,7 +81,7 @@ export function TopNav() {
           })}
           <Link
             href="/posts"
-            className="px-3 py-2 text-sm rounded-full transition-colors border border-transparent text-[color:var(--muted)] hover:text-[color:var(--text)] hover:bg-[color:var(--panel)]"
+            className="px-3 py-2 text-sm rounded-full transition-colors border border-transparent text-[color:var(--muted)] hover:text-[color:var(--text)] hover:bg-[color:color-mix(in_srgb,var(--surface)_100%,transparent)]"
           >
             文章
           </Link>
@@ -89,7 +89,7 @@ export function TopNav() {
             <Link
               href="/admin"
               target="_blank"
-              className="flex items-center gap-1.5 px-3 py-2 text-sm rounded-full transition-colors border border-[color:color-mix(in_srgb,var(--accent)_35%,var(--border))] text-[color:var(--accent)] hover:bg-[color:color-mix(in_srgb,var(--accent)_18%,transparent)] ml-2"
+              className="ml-2 flex items-center gap-1.5 rounded-full border border-[color:color-mix(in_srgb,var(--accent)_35%,var(--border))] px-3 py-2 text-sm text-[color:var(--accent)] transition-colors hover:bg-[color:color-mix(in_srgb,var(--accent)_18%,transparent)]"
               title="进入后台"
             >
               <Settings size={14} />
@@ -116,7 +116,7 @@ export function TopNav() {
       {open ? (
         <div className="md:hidden border-t border-[color:var(--border)] bg-[color:var(--bg)]">
           <div className="container py-3 flex flex-col gap-1">
-            {nav.map((item) => {
+            {siteContent.nav.map((item) => {
               const isActive = item.id === activeId;
               return (
                 <button

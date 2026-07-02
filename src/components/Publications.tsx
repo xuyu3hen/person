@@ -4,7 +4,7 @@ import { ArrowUpRight, Copy, FileText } from "lucide-react";
 import { useState } from "react";
 
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
-import { site } from "@/lib/site-data";
+import { defaultSiteContent } from "@/lib/site-content";
 
 import { SectionHeader } from "./SectionHeader";
 
@@ -31,7 +31,7 @@ function BibTeXBlock(props: { bibtex: string }) {
       </div>
 
       {open ? (
-        <pre className="mt-3 overflow-auto rounded-xl border border-[color:var(--border)] bg-[color:color-mix(in_srgb,var(--panel)_70%,transparent)] p-4 text-xs leading-6 text-[color:var(--muted)]">
+        <pre className="panelInset mt-3 overflow-auto rounded-2xl p-4 text-xs leading-6 text-[color:var(--muted)]">
           <code>{props.bibtex}</code>
         </pre>
       ) : null}
@@ -40,7 +40,9 @@ function BibTeXBlock(props: { bibtex: string }) {
 }
 
 export function Publications({ papers }: { papers?: { year: number; title: string; authors: string; venue: string; pdfUrl?: string; bibtex?: string; doiUrl?: string; codeUrl?: string; }[] }) {
-  const pubs = (papers || [...site.publications]).sort((a, b) => b.year - a.year);
+  const pubs = (papers || [...defaultSiteContent.publications]).sort(
+    (a, b) => b.year - a.year
+  );
 
   return (
     <section id="publications" className="section">
@@ -51,42 +53,54 @@ export function Publications({ papers }: { papers?: { year: number; title: strin
           description="按年份倒序展示论文，并提供 PDF / DOI / Code 与 BibTeX 复制。"
         />
 
-        <div className="mt-8 flex flex-col gap-4">
+        <div className="mt-8 flex flex-col gap-5">
           {pubs.map((p) => (
-            <div key={`${p.year}-${p.title}`} className="card p-5">
-              <div className="flex flex-col gap-3">
+            <div key={`${p.year}-${p.title}`} className="card relative overflow-hidden p-6">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,color-mix(in_srgb,var(--accent)_55%,transparent),transparent)] opacity-70"
+              />
+              <div className="flex flex-col gap-4">
                 <div className="flex flex-wrap items-center gap-3">
-                  <div className="rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-3 py-1 text-xs text-[color:var(--muted)]">
+                  <div className="rounded-full border border-[color:var(--border)] bg-[color:color-mix(in_srgb,var(--surface)_100%,transparent)] px-3 py-1 text-xs text-[color:var(--muted)]">
                     {p.year}
                   </div>
-                  <div className="text-xs text-[color:var(--muted)]">{p.venue}</div>
+                  <div className="text-xs uppercase tracking-[0.14em] text-[color:var(--muted)]">{p.venue}</div>
                 </div>
-                <div className="text-base font-semibold tracking-tight">
-                  {p.title}
-                </div>
-                <div className="text-[13px] leading-6 text-[color:var(--muted)]">
-                  {p.authors}
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  {p.pdfUrl ? (
-                    <a className="button" href={p.pdfUrl} target="_blank" rel="noreferrer">
-                      <FileText size={16} />
-                      <span className="text-sm">PDF</span>
-                    </a>
-                  ) : null}
-                  {p.doiUrl ? (
-                    <a className="button" href={p.doiUrl} target="_blank" rel="noreferrer">
-                      <ArrowUpRight size={16} />
-                      <span className="text-sm">DOI</span>
-                    </a>
-                  ) : null}
-                  {p.codeUrl ? (
-                    <a className="button" href={p.codeUrl} target="_blank" rel="noreferrer">
-                      <ArrowUpRight size={16} />
-                      <span className="text-sm">Code</span>
-                    </a>
-                  ) : null}
+                <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-start">
+                  <div>
+                    <div className="text-lg font-semibold tracking-tight">
+                      {p.title}
+                    </div>
+                    <div className="mt-2 text-[13px] leading-7 text-[color:var(--muted)]">
+                      {p.authors}
+                    </div>
+                  </div>
+                  <div className="panelInset rounded-2xl p-4">
+                    <div className="text-[11px] uppercase tracking-[0.18em] text-[color:var(--muted)]">
+                      Access
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {p.pdfUrl ? (
+                        <a className="button" href={p.pdfUrl} target="_blank" rel="noreferrer">
+                          <FileText size={16} />
+                          <span className="text-sm">PDF</span>
+                        </a>
+                      ) : null}
+                      {p.doiUrl ? (
+                        <a className="button" href={p.doiUrl} target="_blank" rel="noreferrer">
+                          <ArrowUpRight size={16} />
+                          <span className="text-sm">DOI</span>
+                        </a>
+                      ) : null}
+                      {p.codeUrl ? (
+                        <a className="button" href={p.codeUrl} target="_blank" rel="noreferrer">
+                          <ArrowUpRight size={16} />
+                          <span className="text-sm">Code</span>
+                        </a>
+                      ) : null}
+                    </div>
+                  </div>
                 </div>
 
                 {p.bibtex ? <BibTeXBlock bibtex={p.bibtex} /> : null}

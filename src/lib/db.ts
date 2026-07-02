@@ -194,6 +194,14 @@ export async function ensureSchema() {
       CREATE INDEX IF NOT EXISTS journal_todos_sort_created_idx
       ON journal_todos (sort_order, created_at);
     `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS journal_site_content (
+        key TEXT PRIMARY KEY,
+        value JSONB NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL
+      );
+    `;
   })();
   return schemaEnsured;
 }

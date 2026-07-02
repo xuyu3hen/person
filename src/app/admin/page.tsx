@@ -19,6 +19,7 @@ import { BodyShapeTab } from "@/components/admin/BodyShapeTab";
 import { BookNotesTab } from "@/components/admin/BookNotesTab";
 import { DiaryTab } from "@/components/admin/DiaryTab";
 import { PapersTab } from "@/components/admin/PapersTab";
+import { SiteContentTab } from "@/components/admin/SiteContentTab";
 
 import {
   DndContext,
@@ -37,6 +38,23 @@ import {
 } from "@dnd-kit/sortable";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import {
+  BookOpenText,
+  Bot,
+  BrainCircuit,
+  CalendarDays,
+  Dumbbell,
+  FileStack,
+  FileText,
+  HeartPulse,
+  LayoutDashboard,
+  Layers3,
+  LockKeyhole,
+  NotebookPen,
+  RefreshCw,
+  ScrollText,
+  Sparkles,
+} from "lucide-react";
 
 type NoteVisibility = "private" | "public";
 
@@ -130,6 +148,23 @@ function todayYmd() {
   return `${y}-${m}-${day}`;
 }
 
+function formatPrivateHabitLabel(value: boolean) {
+  return value ? "已记录" : "未记录";
+}
+
+type AdminTab =
+  | "site"
+  | "notes"
+  | "diary"
+  | "plans"
+  | "daily"
+  | "private"
+  | "bodyshape"
+  | "books"
+  | "papers"
+  | "documents"
+  | "chat";
+
 function SortablePlanItem({
   plan,
   updatePlan,
@@ -211,7 +246,7 @@ export default function AdminPage() {
   const [checking, setChecking] = useState(true);
   const [authed, setAuthed] = useState(false);
   const [status, setStatus] = useState<string>("");
-  const [tab, setTab] = useState<"notes" | "diary" | "plans" | "daily" | "bodyshape" | "books" | "papers" | "documents" | "chat">("notes");
+  const [tab, setTab] = useState<AdminTab>("notes");
 
   const [notes, setNotes] = useState<Note[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -624,7 +659,6 @@ export default function AdminPage() {
     dailyHistory.forEach(h => {
       lines.push(`## ${h.date}`);
       lines.push(`- 体重: ${h.weight !== null ? h.weight + ' kg' : '未记录'}`);
-      lines.push(`- 状态: ${h.masturbated ? '💦 已撸管' : '✨ 禁欲中'}`);
       lines.push("");
     });
     
@@ -809,7 +843,7 @@ export default function AdminPage() {
 
   if (checking) {
     return (
-      <div className="container py-16">
+      <div className="appShell container py-16">
         <div className="card p-6">加载中…</div>
       </div>
     );
@@ -817,15 +851,17 @@ export default function AdminPage() {
 
   if (!authed) {
     return (
-      <div className="container py-16">
-        <div className="card p-6 max-w-xl">
-          <div className="text-lg font-semibold tracking-tight">日记后台</div>
-          <div className="mt-2 text-sm text-[color:var(--muted)]">
+      <div className="appShell container py-20">
+        <div className="mx-auto max-w-2xl">
+          <div className="sectionEyebrow">Private Console</div>
+          <div className="card mt-4 p-8">
+          <div className="text-2xl font-semibold tracking-tight">日记后台</div>
+          <div className="mt-3 max-w-xl text-sm leading-7 text-[color:var(--muted)]">
             请输入后台密码（环境变量 `ADMIN_PASSWORD`）。
           </div>
           <div className="mt-6 flex gap-3">
             <input
-              className="flex-1 rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3"
+              className="panelInset flex-1 rounded-full px-4 py-3"
               type="password"
               value={loginPassword}
               onChange={(e) => setLoginPassword(e.target.value)}
@@ -843,79 +879,105 @@ export default function AdminPage() {
               {status}
             </div>
           ) : null}
+          </div>
         </div>
       </div>
     );
   }
 
+  const navGroups: {
+    title: string;
+    items: { id: AdminTab; label: string; icon: typeof LayoutDashboard }[];
+  }[] = [
+    {
+      title: "Brand",
+      items: [{ id: "site", label: "站点内容", icon: Layers3 }],
+    },
+    {
+      title: "Capture",
+      items: [
+        { id: "notes", label: "笔记", icon: NotebookPen },
+        { id: "diary", label: "日记", icon: ScrollText },
+        { id: "plans", label: "今日计划", icon: CalendarDays },
+      ],
+    },
+    {
+      title: "Signals",
+      items: [
+        { id: "daily", label: "每日记录", icon: HeartPulse },
+        { id: "private", label: "私密记录", icon: LockKeyhole },
+        { id: "bodyshape", label: "体型记录", icon: Dumbbell },
+      ],
+    },
+    {
+      title: "Assets",
+      items: [
+        { id: "books", label: "读书笔记", icon: BookOpenText },
+        { id: "papers", label: "论文管理", icon: BrainCircuit },
+        { id: "documents", label: "简历与证书", icon: FileText },
+        { id: "chat", label: "AI 助手", icon: Bot },
+      ],
+    },
+  ];
+
   return (
-    <div className="flex min-h-screen bg-[color:var(--bg)]">
+    <div className="appShell flex min-h-screen bg-[color:var(--bg)]">
       {/* Left Sidebar */}
-      <aside className="fixed left-2 top-2 bottom-2 w-[240px] card p-5 flex flex-col gap-4 overflow-y-auto z-20 shadow-lg">
+      <aside className="fixed left-3 top-3 bottom-3 z-20 flex w-[248px] flex-col gap-4 overflow-y-auto rounded-[28px] border border-[color:var(--border)] bg-[color:color-mix(in_srgb,var(--panel-strong)_94%,transparent)] p-5 shadow-[0_28px_80px_rgba(2,6,23,0.34)] backdrop-blur-xl">
         <div className="flex items-center justify-between mb-2">
-          <div className="text-base font-semibold tracking-tight">导航</div>
+          <div>
+            <div className="text-[11px] uppercase tracking-[0.22em] text-[color:var(--muted)]">Workspace</div>
+            <div className="mt-1 flex items-center gap-2 text-base font-semibold tracking-tight">
+              <LayoutDashboard size={16} className="text-[color:var(--accent)]" />
+              <span>控制台</span>
+            </div>
+          </div>
+          <div className="rounded-full border border-[color:var(--border)] bg-[color:color-mix(in_srgb,var(--surface)_100%,transparent)] px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] text-[color:var(--muted)]">
+            Solo OS
+          </div>
         </div>
-        <div className="flex flex-col gap-2">
-          <button
-            className={`text-left px-4 py-3 rounded-xl transition-colors ${tab === "notes" ? "bg-[color:var(--accent)] text-white" : "hover:bg-[color:var(--panel)]"}`}
-            onClick={() => setTab("notes")}
-          >
-            笔记
-          </button>
-          <button
-            className={`text-left px-4 py-3 rounded-xl transition-colors ${tab === "diary" ? "bg-[color:var(--accent)] text-white" : "hover:bg-[color:var(--panel)]"}`}
-            onClick={() => setTab("diary")}
-          >
-            日记
-          </button>
-          <button
-            className={`text-left px-4 py-3 rounded-xl transition-colors ${tab === "plans" ? "bg-[color:var(--accent)] text-white" : "hover:bg-[color:var(--panel)]"}`}
-            onClick={() => setTab("plans")}
-          >
-            今日计划
-          </button>
-          <button
-            className={`text-left px-4 py-3 rounded-xl transition-colors ${tab === "daily" ? "bg-[color:var(--accent)] text-white" : "hover:bg-[color:var(--panel)]"}`}
-            onClick={() => setTab("daily")}
-          >
-            每日记录
-          </button>
-          <button
-            className={`text-left px-4 py-3 rounded-xl transition-colors ${tab === "bodyshape" ? "bg-[color:var(--accent)] text-white" : "hover:bg-[color:var(--panel)]"}`}
-            onClick={() => setTab("bodyshape")}
-          >
-            体型记录
-          </button>
-          <button
-            className={`text-left px-4 py-3 rounded-xl transition-colors ${tab === "books" ? "bg-[color:var(--accent)] text-white" : "hover:bg-[color:var(--panel)]"}`}
-            onClick={() => setTab("books")}
-          >
-            读书笔记
-          </button>
-          <button
-            className={`text-left px-4 py-3 rounded-xl transition-colors ${tab === "papers" ? "bg-[color:var(--accent)] text-white" : "hover:bg-[color:var(--panel)]"}`}
-            onClick={() => setTab("papers")}
-          >
-            论文管理
-          </button>
-          <button
-            className={`text-left px-4 py-3 rounded-xl transition-colors ${tab === "documents" ? "bg-[color:var(--accent)] text-white" : "hover:bg-[color:var(--panel)]"}`}
-            onClick={() => setTab("documents")}
-          >
-            简历与证书
-          </button>
-          <button
-            className={`text-left px-4 py-3 rounded-xl transition-colors ${tab === "chat" ? "bg-[color:var(--accent)] text-white" : "hover:bg-[color:var(--panel)]"}`}
-            onClick={() => setTab("chat")}
-          >
-            AI 助手 (DeepSeek)
-          </button>
+        <div className="flex flex-col gap-4">
+          {navGroups.map((group) => (
+            <div key={group.title} className="flex flex-col gap-2">
+              <div className="px-2 text-[11px] uppercase tracking-[0.18em] text-[color:var(--muted)]">
+                {group.title}
+              </div>
+              <div className="flex flex-col gap-1">
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const active = tab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      className={`flex items-center justify-between rounded-2xl px-4 py-3 text-left transition-all ${
+                        active
+                          ? "bg-[linear-gradient(135deg,color-mix(in_srgb,var(--accent)_28%,transparent),color-mix(in_srgb,var(--accent-strong)_16%,transparent))] text-[color:var(--text)] shadow-[0_14px_34px_color-mix(in_srgb,var(--accent)_12%,transparent)]"
+                          : "hover:bg-[color:color-mix(in_srgb,var(--surface)_100%,transparent)] text-[color:var(--muted)]"
+                      }`}
+                      onClick={() => setTab(item.id)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon size={16} className={active ? "text-[color:var(--accent)]" : ""} />
+                        <span className="text-sm">{item.label}</span>
+                      </div>
+                      {active ? <Sparkles size={14} className="text-[color:var(--accent)]" /> : null}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
-        <div className="mt-auto pt-4 border-t border-[color:var(--border)] flex flex-col gap-3">
-          <div className="text-sm text-[color:var(--muted)]">
+        <div className="panelInset mt-auto rounded-[22px] p-4 flex flex-col gap-3">
+          <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-[color:var(--muted)]">
+            <FileStack size={13} />
+            System Status
+          </div>
+          <div className="text-sm text-[color:var(--muted)] min-h-[40px]">
             {status}
           </div>
           <button className="button w-full" onClick={refreshAll}>
+            <RefreshCw size={14} />
             同步数据
           </button>
           <button className="button w-full" onClick={onLogout}>
@@ -925,7 +987,51 @@ export default function AdminPage() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 ml-[256px] p-6 max-w-6xl">
+      <main className="flex-1 ml-[268px] max-w-[1320px] p-7">
+        <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <div className="sectionEyebrow">Private Command Deck</div>
+            <h1 className="mt-4 text-3xl font-semibold tracking-tight">Solo Builder Console</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-[color:var(--muted)]">
+              在一个界面里管理你的记录、计划、知识资产和日常节奏，把生活系统像产品一样持续迭代。
+            </p>
+          </div>
+          <div className="panelInset flex items-center gap-3 rounded-[22px] px-4 py-4 text-sm text-[color:var(--muted)]">
+            <Sparkles size={16} className="text-[color:var(--accent)]" />
+            <span>当前模块：{navGroups.flatMap((group) => group.items).find((item) => item.id === tab)?.label ?? "控制台"}</span>
+          </div>
+        </div>
+
+        <div className="mb-8 grid grid-cols-2 gap-4 xl:grid-cols-4">
+          {[
+            { label: "Notes", value: notes.length, hint: "知识捕捉", icon: NotebookPen },
+            { label: "Plans", value: plans.filter((item) => !item.done).length, hint: "未完成事项", icon: CalendarDays },
+            { label: "Signals", value: dailyHistory.length, hint: "已记录天数", icon: HeartPulse },
+            { label: "Assets", value: documents.length, hint: "文档与资料", icon: FileText },
+          ].map((item) => {
+            const Icon = item.icon;
+            return (
+              <div key={item.label} className="card p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-[11px] uppercase tracking-[0.18em] text-[color:var(--muted)]">
+                      {item.label}
+                    </div>
+                    <div className="mt-3 text-3xl font-semibold tracking-tight">
+                      {item.value}
+                    </div>
+                    <div className="mt-2 text-sm text-[color:var(--muted)]">
+                      {item.hint}
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-[color:color-mix(in_srgb,var(--accent)_25%,var(--border))] bg-[color:color-mix(in_srgb,var(--accent)_10%,transparent)] p-3">
+                    <Icon size={18} className="text-[color:var(--accent)]" />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
 
         {tab === "notes" && (
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1.5fr]">
@@ -1464,19 +1570,6 @@ export default function AdminPage() {
               />
             </div>
 
-            <div className="flex items-center gap-3 mt-2">
-              <input
-                type="checkbox"
-                id="masturbated-checkbox"
-                className="w-5 h-5 rounded border-[color:var(--border)]"
-                checked={dailyMasturbated}
-                onChange={(e) => setDailyMasturbated(e.target.checked)}
-              />
-              <label htmlFor="masturbated-checkbox" className="text-sm font-medium cursor-pointer">
-                今天撸管了吗？
-              </label>
-            </div>
-
             <div className="mt-4 flex gap-3">
               <button className="button buttonPrimary flex-1" onClick={saveDaily} disabled={isSavingDaily}>
                 {isSavingDaily ? "保存中..." : `保存 ${dailyDate} 的记录`}
@@ -1544,7 +1637,6 @@ export default function AdminPage() {
                       <div className="font-mono text-sm">{h.date}</div>
                       <div className="text-sm font-medium flex gap-4">
                         <span>{h.weight !== null ? `${h.weight} kg` : "体重未记录"}</span>
-                        <span>{h.masturbated ? "💦 已撸管" : "✨ 禁欲中"}</span>
                       </div>
                     </div>
                   ))
@@ -1564,14 +1656,14 @@ export default function AdminPage() {
                 {dailyHistory.slice(0, 31).reverse().map((h) => (
                   <div 
                     key={h.id} 
-                    title={`${h.date}\n体重: ${h.weight || '-'}\n状态: ${h.masturbated ? '已撸管' : '禁欲中'}`}
+                    title={`${h.date}\n体重: ${h.weight || '-'}`}
                     onClick={() => setDailyDate(h.date)}
                     className={`aspect-square rounded-lg border p-1 flex flex-col items-center justify-center cursor-pointer transition-colors text-xs
                       ${h.date === dailyDate ? 'border-[color:var(--accent)] bg-[color:color-mix(in_srgb,var(--accent)_10%,transparent)]' : 'border-[color:var(--border)] bg-[color:var(--panel)] hover:bg-[color:color-mix(in_srgb,var(--panel)_80%,transparent)]'}
                     `}
                   >
                     <span className="font-mono opacity-60 mb-1">{h.date.slice(8, 10)}</span>
-                    <span>{h.masturbated ? "💦" : "✨"}</span>
+                    <span>{h.weight !== null ? `${h.weight}` : "-"}</span>
                   </div>
                 ))}
               </div>
@@ -1579,9 +1671,85 @@ export default function AdminPage() {
           </div>
         )}
 
+        {tab === "private" && (
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+            <div className="card p-6 flex flex-col gap-5">
+              <div className="text-lg font-semibold tracking-tight">私密记录</div>
+              <div className="text-sm leading-7 text-[color:var(--muted)]">
+                这部分已从主界面拆出，用于记录更私密的个人状态，避免在“每日记录”里直接出现敏感提问。
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium">日期</label>
+                <input
+                  type="date"
+                  max={todayYmd()}
+                  className="rounded-xl border border-[color:var(--border)] bg-[color:var(--panel)] px-4 py-3 text-sm"
+                  value={dailyDate}
+                  onChange={(e) => {
+                    if (e.target.value > todayYmd()) {
+                      alert("不能录入未来日期的记录！");
+                      return;
+                    }
+                    setDailyDate(e.target.value);
+                  }}
+                />
+              </div>
+              <label className="flex items-center gap-3 rounded-xl border border-[color:var(--border)] bg-[color:color-mix(in_srgb,var(--panel)_70%,transparent)] px-4 py-4 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="w-5 h-5 rounded border-[color:var(--border)]"
+                  checked={dailyMasturbated}
+                  onChange={(e) => setDailyMasturbated(e.target.checked)}
+                />
+                <span className="text-sm font-medium">记录今日私密状态</span>
+              </label>
+              <div className="text-xs text-[color:var(--muted)]">
+                当前状态：{formatPrivateHabitLabel(dailyMasturbated)}
+              </div>
+              <button
+                className="button buttonPrimary"
+                onClick={saveDaily}
+                disabled={isSavingDaily}
+              >
+                {isSavingDaily ? "保存中..." : "保存私密记录"}
+              </button>
+            </div>
+
+            <div className="card p-6 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <div className="text-lg font-semibold tracking-tight">最近私密状态</div>
+                <div className="text-sm text-[color:var(--muted)]">近 31 天</div>
+              </div>
+              <div className="flex flex-col gap-3">
+                {dailyHistory.length > 0 ? (
+                  dailyHistory.slice(0, 31).map((h) => (
+                    <div
+                      key={h.id}
+                      className="flex items-center justify-between gap-4 rounded-xl border border-[color:var(--border)] bg-[color:color-mix(in_srgb,var(--panel)_60%,transparent)] p-4"
+                    >
+                      <div>
+                        <div className="font-mono text-sm">{h.date}</div>
+                        <div className="text-xs text-[color:var(--muted)]">
+                          私密状态：{formatPrivateHabitLabel(h.masturbated)}
+                        </div>
+                      </div>
+                      <button className="button" onClick={() => setDailyDate(h.date)}>
+                        查看
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-sm text-[color:var(--muted)]">暂无私密记录</div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {tab === "bodyshape" && <BodyShapeTab />}
         {tab === "books" && <BookNotesTab />}
         {tab === "papers" && <PapersTab />}
+        {tab === "site" && <SiteContentTab active={tab === "site"} />}
         
         {tab === "documents" && (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_2fr]">

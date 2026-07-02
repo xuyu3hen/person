@@ -4,17 +4,17 @@ export function SectionHeader(props: {
   description?: string;
 }) {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="contentGrid flex flex-col gap-4">
       {props.eyebrow ? (
-        <div className="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--muted)]">
+        <div className="sectionEyebrow">
           {props.eyebrow}
         </div>
       ) : null}
-      <h2 className="text-[28px] font-semibold tracking-tight">
+      <h2 className="max-w-3xl text-[30px] font-semibold tracking-tight sm:text-[36px]">
         {props.title}
       </h2>
       {props.description ? (
-        <p className="max-w-2xl text-[15px] leading-7 text-[color:var(--muted)]">
+        <p className="max-w-2xl text-[15px] leading-8 text-[color:var(--muted)] sm:text-[16px]">
           {props.description}
         </p>
       ) : null}

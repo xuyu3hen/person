@@ -1,25 +1,31 @@
 @import "tailwindcss";
 
 :root {
-  /* Default: OpenAI Dark */
-  --bg: #000000;
-  --panel: #171717;
-  --text: #ececec;
-  --muted: #888888;
-  --accent: #10a37f;
-  --border: #2e2e2e;
-  --ring: rgba(16, 163, 127, 0.4);
+  --bg: #050816;
+  --panel: rgba(10, 15, 29, 0.78);
+  --panel-strong: rgba(10, 15, 29, 0.92);
+  --text: #eef2ff;
+  --muted: #92a0bf;
+  --accent: #7dd3fc;
+  --accent-strong: #38bdf8;
+  --border: rgba(148, 163, 184, 0.18);
+  --ring: rgba(125, 211, 252, 0.28);
+  --surface: rgba(255, 255, 255, 0.03);
+  --shadow: 0 24px 80px rgba(2, 6, 23, 0.42);
 }
 
 [data-theme="light"] {
-  /* OpenAI Light */
-  --bg: #ffffff;
-  --panel: #f9f9f9;
-  --text: #0d0d0d;
-  --muted: #666666;
-  --accent: #10a37f;
-  --border: #e5e5e5;
-  --ring: rgba(16, 163, 127, 0.4);
+  --bg: #f5f8ff;
+  --panel: rgba(255, 255, 255, 0.84);
+  --panel-strong: rgba(255, 255, 255, 0.96);
+  --text: #081120;
+  --muted: #5d6b86;
+  --accent: #2563eb;
+  --accent-strong: #1d4ed8;
+  --border: rgba(15, 23, 42, 0.08);
+  --ring: rgba(37, 99, 235, 0.18);
+  --surface: rgba(37, 99, 235, 0.04);
+  --shadow: 0 24px 60px rgba(148, 163, 184, 0.18);
 }
 
 [data-theme="anthropic-dark"] {
@@ -70,6 +76,7 @@ body {
   color: var(--text);
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial,
     "Apple Color Emoji", "Segoe UI Emoji";
+  min-height: 100vh;
 }
 
 body::before {
@@ -78,18 +85,35 @@ body::before {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(900px 600px at 12% 18%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 60%),
-    radial-gradient(760px 520px at 88% 26%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 62%),
-    radial-gradient(900px 620px at 50% 110%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 66%),
+    radial-gradient(900px 600px at 12% 18%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%),
+    radial-gradient(760px 520px at 88% 26%, color-mix(in srgb, var(--accent-strong) 12%, transparent), transparent 62%),
+    radial-gradient(900px 620px at 50% 110%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 66%),
     repeating-linear-gradient(
       0deg,
-      color-mix(in srgb, var(--border) 55%, transparent) 0px,
-      color-mix(in srgb, var(--border) 55%, transparent) 1px,
+      color-mix(in srgb, var(--border) 28%, transparent) 0px,
+      color-mix(in srgb, var(--border) 28%, transparent) 1px,
+      transparent 1px,
+      transparent 80px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--border) 16%, transparent) 0px,
+      color-mix(in srgb, var(--border) 16%, transparent) 1px,
       transparent 1px,
       transparent 80px
     );
-  opacity: 0.55;
+  opacity: 0.7;
   mix-blend-mode: normal;
+  z-index: 0;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(5, 8, 22, 0) 0%, rgba(5, 8, 22, 0.22) 100%);
   z-index: 0;
 }
 
@@ -105,8 +129,8 @@ body::before {
       color-mix(in srgb, var(--accent) 20%, transparent),
       transparent 40%
     );
-  filter: blur(18px);
-  opacity: 0.75;
+  filter: blur(28px);
+  opacity: 0.9;
   transform: translate3d(0, 0, 0);
   animation: heroFloat 10s ease-in-out infinite;
 }
@@ -165,15 +189,23 @@ body::before {
 }
 
 .card {
-  border-radius: 12px;
+  border-radius: 22px;
   border: 1px solid var(--border);
-  background: var(--panel);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.14);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--panel-strong) 86%, transparent),
+      color-mix(in srgb, var(--panel) 92%, transparent)
+    );
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
 }
 
 .card:hover {
-  box-shadow: 0 16px 46px rgba(0, 0, 0, 0.18);
-  border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
+  box-shadow:
+    0 24px 90px rgba(2, 6, 23, 0.52),
+    0 0 0 1px color-mix(in srgb, var(--accent) 8%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
 }
 
 @keyframes heroFloat {
@@ -201,13 +233,30 @@ body::before {
 .container {
   margin-left: auto;
   margin-right: auto;
-  max-width: 1120px;
-  padding-left: 16px;
-  padding-right: 16px;
+  max-width: 1200px;
+  padding-left: 20px;
+  padding-right: 20px;
 }
 
 .section {
-  scroll-margin-top: 96px;
+  scroll-margin-top: 110px;
+  position: relative;
+}
+
+.section::before {
+  content: "";
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--border) 90%, transparent),
+    transparent
+  );
+  opacity: 0.75;
 }
 
 .button {
@@ -216,23 +265,91 @@ body::before {
   justify-content: center;
   gap: 8px;
   border-radius: 9999px;
-  padding: 10px 16px;
+  padding: 11px 17px;
   border: 1px solid var(--border);
   transition: transform 180ms ease, background-color 180ms ease,
     border-color 180ms ease, box-shadow 180ms ease;
+  background: color-mix(in srgb, var(--surface) 100%, transparent);
+  backdrop-filter: blur(12px);
 }
 
 .button:hover {
-  background: color-mix(in srgb, var(--panel) 72%, transparent);
+  background: color-mix(in srgb, var(--panel) 80%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 26%, var(--border));
+  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.16);
   transform: translateY(-1px);
 }
 
 .buttonPrimary {
-  background: var(--accent);
-  color: rgba(2, 6, 23, 0.92);
-  border-color: transparent;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent) 90%, white),
+    color-mix(in srgb, var(--accent-strong) 96%, black)
+  );
+  color: rgba(2, 6, 23, 0.94);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  box-shadow:
+    0 14px 36px color-mix(in srgb, var(--accent) 26%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .buttonPrimary:hover {
-  background: color-mix(in srgb, var(--accent) 88%, white);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent) 82%, white),
+    color-mix(in srgb, var(--accent-strong) 90%, black)
+  );
+}
+
+.appShell {
+  position: relative;
+  z-index: 1;
+}
+
+.panelInset {
+  border: 1px solid color-mix(in srgb, var(--border) 86%, transparent);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface) 100%, transparent),
+      color-mix(in srgb, var(--panel) 72%, transparent)
+    );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.sectionEyebrow {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 10px;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  padding: 7px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--text) 82%, var(--muted));
+  background: color-mix(in srgb, var(--surface) 100%, transparent);
+}
+
+.sectionEyebrow::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--accent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.contentGrid {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 768px) {
+  .section::before {
+    left: 16px;
+    right: 16px;
+  }
 }

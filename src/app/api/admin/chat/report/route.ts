@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
 
     const sql = getSql();
     
-    // 1. 获取过去 N 天的每日记录 (体重, 撸管等)
+    // 1. 获取过去 N 天的每日记录
     const { rows: dailies } = await sql`
       SELECT date, weight, masturbated
       FROM journal_dailies
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
       prompt += "没有记录。\n";
     } else {
       (dailies as { date: string; weight: number | null; masturbated: boolean }[]).forEach((d) => {
-        prompt += `- ${d.date}: 体重 ${d.weight || '未记录'}kg, 撸管: ${d.masturbated ? '是 💦' : '否 ✨'}\n`;
+        prompt += `- ${d.date}: 体重 ${d.weight || '未记录'}kg, 私密状态: ${d.masturbated ? '已记录' : '未记录'}\n`;
       });
     }
 
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    prompt += `\n请你：\n1. 总结我体重变化的趋势（如果有数据）。\n2. 评估我的欲望控制情况（撸管频率），用鼓励或者幽默的方式点评。\n3. 分析我的计划执行力（完成率），表扬做得好的，指出需要改进的。\n4. 给我下一周的简单建议。\n\n语气要像一个懂我的、幽默且严厉的私人教练，排版要清晰（使用 Markdown）。`;
+    prompt += `\n请你：\n1. 总结我体重变化的趋势（如果有数据）。\n2. 简要观察我的私密状态记录是否稳定，不要使用直白或冒犯性措辞。\n3. 分析我的计划执行力（完成率），表扬做得好的，指出需要改进的。\n4. 给我下一周的简单建议。\n\n语气要像一个懂我的、幽默但克制的私人教练，排版要清晰（使用 Markdown）。`;
 
     const apiKey = process.env.DEEPSEEK_API_KEY;
     if (!apiKey) {

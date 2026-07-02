@@ -1,10 +1,17 @@
-export type SectionId =
-  | "home"
-  | "about"
-  | "research"
-  | "publications"
-  | "projects"
-  | "contact";
+export const SECTION_IDS = [
+  "home",
+  "about",
+  "research",
+  "publications",
+  "projects",
+  "contact",
+] as const;
+
+export type SectionId = (typeof SECTION_IDS)[number];
+
+export function isSectionId(value: string): value is SectionId {
+  return SECTION_IDS.includes(value as SectionId);
+}
 
 export function getSectionEl(id: SectionId) {
   return typeof document === "undefined"

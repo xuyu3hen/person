@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     let subtasks = [];
     try {
       subtasks = JSON.parse(content);
-    } catch (e: unknown) {
+    } catch {
       throw new Error(`Failed to parse AI response as JSON: ${content}`);
     }
 

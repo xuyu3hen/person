@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 const MAX_PHOTOS = 5;
@@ -492,10 +493,13 @@ export function DiaryTab() {
             <div className="flex flex-wrap gap-2 mb-3">
               {photos.map((url, i) => (
                 <div key={i} className="relative group">
-                  <img
+                  <Image
                     src={url}
                     alt={`照片 ${i + 1}`}
-                    className="w-20 h-20 object-cover rounded-xl border border-[color:var(--border)]"
+                    width={80}
+                    height={80}
+                    unoptimized
+                    className="h-20 w-20 rounded-xl border border-[color:var(--border)] object-cover"
                   />
                   <button
                     type="button"

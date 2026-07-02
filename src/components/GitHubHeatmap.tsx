@@ -146,12 +146,20 @@ export function GitHubHeatmap({ username }: { username?: string }) {
   }
 
   return (
-    <div className="card p-5">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+    <div className="card relative overflow-hidden p-6">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,color-mix(in_srgb,var(--accent)_58%,transparent),transparent)] opacity-70"
+      />
+      <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
-          <Github size={16} className="text-[color:var(--muted)]" />
-          <h3 className="text-sm font-semibold tracking-tight">GitHub 活跃度</h3>
+          <div>
+            <div className="sectionEyebrow">Code Graph</div>
+            <h3 className="mt-3 flex items-center gap-2 text-base font-semibold tracking-tight">
+              <Github size={16} className="text-[color:var(--accent)]" />
+              GitHub 活跃度
+            </h3>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs text-[color:var(--muted)]">
@@ -174,10 +182,8 @@ export function GitHubHeatmap({ username }: { username?: string }) {
         </p>
       )}
 
-      {/* Heatmap grid */}
-      <div className="overflow-x-auto -mx-1">
+      <div className="panelInset overflow-x-auto rounded-[22px] px-3 py-4 -mx-1">
         <div className="inline-flex flex-col gap-0.5 min-w-[680px]">
-          {/* Month labels */}
           <div className="flex ml-8 mb-0.5">
             {monthLabels.map((m, i) => {
               const nextCol = i < monthLabels.length - 1 ? monthLabels[i + 1].col : 53;
@@ -195,9 +201,7 @@ export function GitHubHeatmap({ username }: { username?: string }) {
             })}
           </div>
 
-          {/* Grid with day labels */}
           <div className="flex gap-0.5">
-            {/* Day labels */}
             <div className="flex flex-col gap-0.5 mr-1.5">
               {dayLabels.map((label, i) => (
                 <div
@@ -209,7 +213,6 @@ export function GitHubHeatmap({ username }: { username?: string }) {
               ))}
             </div>
 
-            {/* Cells */}
             <div className="flex gap-0.5">
               {weeks.map((week, wi) => (
                 <div key={wi} className="flex flex-col gap-0.5">
@@ -234,7 +237,6 @@ export function GitHubHeatmap({ username }: { username?: string }) {
         </div>
       </div>
 
-      {/* Legend */}
       <div className="flex items-center justify-end gap-1.5 mt-3">
         <span className="text-[9px] text-[color:var(--muted)]">少</span>
         {[0, 1, 2, 3, 4].map((level) => (

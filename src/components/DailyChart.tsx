@@ -8,7 +8,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Bar,
   ComposedChart,
   Legend,
 } from "recharts";
@@ -40,7 +39,6 @@ export function DailyChart({ data }: { data: DailyData[] }) {
 
     return filtered.sort((a, b) => a.date.localeCompare(b.date)).map(d => ({
       ...d,
-      masturbationValue: d.masturbated ? 1 : 0, // For bar chart
       displayDate: format(parseISO(d.date), "MM-dd"),
     }));
   }, [data, range]);
@@ -98,12 +96,6 @@ export function DailyChart({ data }: { data: DailyData[] }) {
               tick={{ fontSize: 12, fill: "var(--muted)" }} 
               dx={-10}
             />
-            <YAxis 
-              yAxisId="masturbated" 
-              orientation="right" 
-              domain={[0, 1]} 
-              hide={true} 
-            />
             <Tooltip 
               contentStyle={{ 
                 backgroundColor: "var(--panel)", 
@@ -115,21 +107,11 @@ export function DailyChart({ data }: { data: DailyData[] }) {
               labelStyle={{ fontWeight: 600, marginBottom: "8px", color: "var(--fg)" }}
               formatter={(value: unknown, name: unknown) => {
                 if (name === "weight") return [value ? `${value} kg` : "未记录", "体重"];
-                if (name === "masturbationValue") return [value === 1 ? "是" : "否", "是否自慰"];
                 return [value as string | number, String(name)];
               }}
               labelFormatter={(label) => `日期: ${label}`}
             />
             <Legend wrapperStyle={{ fontSize: "12px", paddingTop: "10px" }} />
-            <Bar 
-              yAxisId="masturbated" 
-              dataKey="masturbationValue" 
-              name="自慰标记" 
-              fill="var(--accent)" 
-              fillOpacity={0.2}
-              barSize={20}
-              radius={[4, 4, 0, 0]}
-            />
             <Line 
               yAxisId="weight" 
               type="monotone" 

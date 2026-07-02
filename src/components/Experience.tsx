@@ -1,23 +1,27 @@
-import { site } from "@/lib/site-data";
+import type { SiteContent } from "@/lib/site-content";
 
 import { SectionHeader } from "./SectionHeader";
 
-export function Experience() {
+export function Experience({ siteContent }: { siteContent: SiteContent }) {
   return (
     <section id="experience" className="section">
       <div className="container py-14">
         <SectionHeader
           eyebrow="Experience"
           title="履历与经历"
-          description="用时间线方式呈现教育、工作与研究经历。"
+          description={siteContent.experienceSection.description}
         />
 
-        <div className="mt-8 grid grid-cols-1 gap-4">
-          {site.experience.map((item) => (
+        <div className="mt-8 grid grid-cols-1 gap-5">
+          {siteContent.experience.map((item) => (
             <div
               key={`${item.org}-${item.time}`}
-              className="card p-5 grid grid-cols-1 gap-4 md:grid-cols-[180px_1fr]"
+              className="card relative overflow-hidden p-6 grid grid-cols-1 gap-4 md:grid-cols-[180px_1fr]"
             >
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,color-mix(in_srgb,var(--accent)_52%,transparent),transparent)] opacity-70"
+              />
               <div className="text-sm text-[color:var(--muted)]">{item.time}</div>
               <div className="flex flex-col gap-2">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -36,14 +40,16 @@ export function Experience() {
           ))}
         </div>
 
-        <div className="mt-10 grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <div className="card p-5">
-            <div className="text-sm font-semibold tracking-tight">荣誉</div>
+        <div className="mt-10 grid grid-cols-1 gap-5 lg:grid-cols-2">
+          <div className="card p-6">
+            <div className="text-sm font-semibold tracking-tight">
+              {siteContent.experienceSection.awardsTitle}
+            </div>
             <div className="mt-3 flex flex-col gap-2">
-              {site.awards.map((a) => (
+              {siteContent.awards.map((a) => (
                 <div
                   key={`${a.year}-${a.title}`}
-                  className="flex items-start justify-between gap-3 rounded-xl border border-[color:var(--border)] bg-[color:color-mix(in_srgb,var(--panel)_70%,transparent)] p-4"
+                  className="panelInset flex items-start justify-between gap-3 rounded-2xl p-4"
                 >
                   <div className="flex flex-col gap-1">
                     <div className="text-sm">{a.title}</div>
@@ -58,13 +64,15 @@ export function Experience() {
               ))}
             </div>
           </div>
-          <div className="card p-5">
-            <div className="text-sm font-semibold tracking-tight">报告</div>
+          <div className="card p-6">
+            <div className="text-sm font-semibold tracking-tight">
+              {siteContent.experienceSection.talksTitle}
+            </div>
             <div className="mt-3 flex flex-col gap-2">
-              {site.talks.map((t) => (
+              {siteContent.talks.map((t) => (
                 <div
                   key={`${t.year}-${t.title}`}
-                  className="flex items-start justify-between gap-3 rounded-xl border border-[color:var(--border)] bg-[color:color-mix(in_srgb,var(--panel)_70%,transparent)] p-4"
+                  className="panelInset flex items-start justify-between gap-3 rounded-2xl p-4"
                 >
                   <div className="flex flex-col gap-1">
                     <div className="text-sm">{t.title}</div>

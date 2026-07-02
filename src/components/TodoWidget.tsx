@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Plus, Trash2 } from "lucide-react";
+import { Check, CircleDashed, Plus, Sparkles, Target, Trash2 } from "lucide-react";
 
 interface Todo {
   id: string;
@@ -140,19 +140,35 @@ export function TodoWidget() {
   }
 
   return (
-    <div className="card p-5">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold tracking-tight">今日待办</h3>
-        <span className="text-xs text-[color:var(--muted)]">
+    <div className="card relative overflow-hidden p-6">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,color-mix(in_srgb,var(--accent)_58%,transparent),transparent)] opacity-70"
+      />
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <div className="sectionEyebrow">
+            Focus Stack
+          </div>
+          <h3 className="mt-3 flex items-center gap-2 text-base font-semibold tracking-tight">
+            <Target size={16} className="text-[color:var(--accent)]" />
+            今日待办
+          </h3>
+        </div>
+        <span className="rounded-full border border-[color:var(--border)] bg-[color:color-mix(in_srgb,var(--surface)_100%,transparent)] px-3 py-1 text-xs text-[color:var(--muted)]">
           {doneCount}/{total}
         </span>
       </div>
 
-      {/* Progress bar */}
       {total > 0 && (
-        <div className="mb-4">
-          <div className="h-1.5 rounded-full bg-[color:var(--border)] overflow-hidden">
+        <div className="panelInset mb-4 rounded-2xl p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <span className="text-[11px] uppercase tracking-[0.18em] text-[color:var(--muted)]">
+              Completion
+            </span>
+            <span className="text-xs text-[color:var(--text)]">{pct}%</span>
+          </div>
+          <div className="h-2 rounded-full bg-[color:var(--border)] overflow-hidden">
             <motion.div
               className="h-full rounded-full"
               style={{
@@ -164,16 +180,19 @@ export function TodoWidget() {
               transition={{ duration: 0.5, ease: "easeOut" }}
             />
           </div>
-          <p className="text-[10px] text-[color:var(--muted)] mt-1 text-right">
-            {pct === 100 ? "全部完成 🎉" : `完成 ${pct}%`}
+          <p className="mt-3 flex items-center gap-1.5 text-[11px] text-[color:var(--muted)]">
+            <Sparkles size={12} className="text-[color:var(--accent)]" />
+            {pct === 100 ? "全部完成，今天状态很好。" : `继续推进，还差 ${100 - pct}%`}
           </p>
         </div>
       )}
 
-      {/* Todo list */}
       <div className="space-y-1.5 max-h-[260px] overflow-y-auto pr-0.5">
         {todos.length === 0 ? (
-          <p className="text-xs text-[color:var(--muted)]/50 py-2">暂无待办，添加一个吧</p>
+          <div className="panelInset flex items-center gap-2 rounded-2xl px-4 py-4 text-xs text-[color:var(--muted)]/80">
+            <CircleDashed size={14} />
+            <span>暂无待办，添加一个吧</span>
+          </div>
         ) : (
           <AnimatePresence>
             {todos.map((todo) => (
@@ -183,7 +202,7 @@ export function TodoWidget() {
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.2 }}
-                className="flex items-center gap-2 group"
+                className="panelInset group flex items-center gap-3 rounded-2xl px-3 py-3"
               >
                 <button
                   onClick={() => toggleTodo(todo.id)}
@@ -216,15 +235,14 @@ export function TodoWidget() {
         )}
       </div>
 
-      {/* Add input */}
-      <div className="mt-3 flex items-center gap-2">
+      <div className="panelInset mt-4 flex items-center gap-2 rounded-2xl px-3 py-3">
         <input
           type="text"
           value={newText}
           onChange={(e) => setNewText(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="添加待办..."
-          className="flex-1 text-xs bg-transparent border-b border-[color:var(--border)] py-1.5 outline-none focus:border-[color:var(--accent)] transition-colors placeholder:text-[color:var(--muted)]/50"
+          className="flex-1 bg-transparent py-1.5 text-xs outline-none placeholder:text-[color:var(--muted)]/50"
         />
         <button
           onClick={addTodo}
