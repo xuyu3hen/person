@@ -19,14 +19,20 @@ interface HomeSectionsProps {
     pdfUrl?: string;
     bibtex?: string;
   }[] | undefined;
+  diaryEntries?: {
+    date: string;
+    summary: string;
+    mood?: string;
+    slug?: string;
+  }[];
 }
 
-export function HomeSections({ papers }: HomeSectionsProps) {
+export function HomeSections({ papers, diaryEntries }: HomeSectionsProps) {
   return (
     <>
       <Hero />
       <ParallaxSection offset={-18}>
-        <TimelineDiary />
+        <TimelineDiary diaryEntries={diaryEntries} />
       </ParallaxSection>
       <ParallaxSection offset={-18}>
         <About />

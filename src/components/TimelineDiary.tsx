@@ -48,6 +48,9 @@ const moodEmoji: Record<string, string> = {
   learning: "📚",
   happy: "😊",
   tired: "😴",
+  sad: "😢",
+  angry: "😡",
+  anxious: "😰",
 };
 
 function formatDate(dateStr: string): string {
@@ -58,7 +61,7 @@ function formatDate(dateStr: string): string {
   return `${month}月${day}日 ${weekdays[d.getDay()]}`;
 }
 
-function Card({ entry, index }: { entry: DiaryEntry; index: number }) {
+function Card({ entry, index, total }: { entry: DiaryEntry; index: number; total: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
 
@@ -88,7 +91,7 @@ function Card({ entry, index }: { entry: DiaryEntry; index: number }) {
     >
       {/* Timeline dot & line */}
       <div className="absolute left-0 top-1.5 w-3 h-3 rounded-full border-2 border-[color:var(--accent)] bg-[color:var(--panel)] ring-2 ring-[color:var(--bg)] z-10 group-hover:scale-125 transition-transform duration-200" />
-      {index < fallbackEntries.length - 1 && (
+      {index < total - 1 && (
         <div className="absolute left-[5px] top-4 bottom-0 w-[2px] bg-[color:var(--border)]" />
       )}
 
@@ -119,7 +122,9 @@ function Card({ entry, index }: { entry: DiaryEntry; index: number }) {
   );
 }
 
-export function TimelineDiary() {
+export function TimelineDiary({ diaryEntries }: { diaryEntries?: DiaryEntry[] }) {
+  const entries = diaryEntries && diaryEntries.length > 0 ? diaryEntries : fallbackEntries;
+
   return (
     <section id="diary" className="section">
       <div className="container py-12">
@@ -130,8 +135,8 @@ export function TimelineDiary() {
           <h2 className="text-2xl font-semibold tracking-tight">最近记录</h2>
         </div>
         <div className="max-w-2xl">
-          {fallbackEntries.map((entry, i) => (
-            <Card key={entry.date} entry={entry} index={i} />
+          {entries.map((entry, i) => (
+            <Card key={entry.date} entry={entry} index={i} total={entries.length} />
           ))}
         </div>
         <Link

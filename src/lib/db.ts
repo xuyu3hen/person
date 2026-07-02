@@ -153,6 +153,47 @@ export async function ensureSchema() {
       CREATE INDEX IF NOT EXISTS journal_books_status_created_at_idx
       ON journal_books (status, created_at DESC);
     `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS journal_diary (
+        id TEXT PRIMARY KEY,
+        date DATE NOT NULL,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        mood TEXT DEFAULT '',
+        weather TEXT DEFAULT '',
+        tags JSONB NOT NULL DEFAULT '[]'::jsonb,
+        created_at TIMESTAMPTZ NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL
+      );
+    `;
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS journal_diary_date_idx
+      ON journal_diary (date DESC);
+    `;
+
+    try {
+      await sql`ALTER TABLE journal_diary ADD COLUMN photos JSONB NOT NULL DEFAULT '[]'::jsonb`;
+    } catch {
+      // column likely exists, ignore
+    }
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS journal_todos (
+        id TEXT PRIMARY KEY,
+        text TEXT NOT NULL,
+        done BOOLEAN NOT NULL DEFAULT FALSE,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        created_at TIMESTAMPTZ NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL
+      );
+    `;
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS journal_todos_sort_created_idx
+      ON journal_todos (sort_order, created_at);
+    `;
   })();
   return schemaEnsured;
 }

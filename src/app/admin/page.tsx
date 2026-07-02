@@ -17,6 +17,7 @@ import {
 import { DailyChart } from "@/components/DailyChart";
 import { BodyShapeTab } from "@/components/admin/BodyShapeTab";
 import { BookNotesTab } from "@/components/admin/BookNotesTab";
+import { DiaryTab } from "@/components/admin/DiaryTab";
 import { PapersTab } from "@/components/admin/PapersTab";
 
 import {
@@ -210,7 +211,7 @@ export default function AdminPage() {
   const [checking, setChecking] = useState(true);
   const [authed, setAuthed] = useState(false);
   const [status, setStatus] = useState<string>("");
-  const [tab, setTab] = useState<"notes" | "plans" | "daily" | "bodyshape" | "books" | "papers" | "documents" | "chat">("notes");
+  const [tab, setTab] = useState<"notes" | "diary" | "plans" | "daily" | "bodyshape" | "books" | "papers" | "documents" | "chat">("notes");
 
   const [notes, setNotes] = useState<Note[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -862,6 +863,12 @@ export default function AdminPage() {
             笔记
           </button>
           <button
+            className={`text-left px-4 py-3 rounded-xl transition-colors ${tab === "diary" ? "bg-[color:var(--accent)] text-white" : "hover:bg-[color:var(--panel)]"}`}
+            onClick={() => setTab("diary")}
+          >
+            日记
+          </button>
+          <button
             className={`text-left px-4 py-3 rounded-xl transition-colors ${tab === "plans" ? "bg-[color:var(--accent)] text-white" : "hover:bg-[color:var(--panel)]"}`}
             onClick={() => setTab("plans")}
           >
@@ -1256,6 +1263,8 @@ export default function AdminPage() {
             )}
           </div>
         )}
+
+        {tab === "diary" && <DiaryTab />}
 
         {tab === "plans" && (
           <div className="card p-5">
