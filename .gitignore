@@ -20,6 +20,9 @@
 # local admin data
 /data/
 
+# local uploads (dev fallback when BLOB_READ_WRITE_TOKEN is not set)
+/public/uploads/
+
 # production
 /build
 

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminCookieName, verifyAdminSessionCookieValue } from "@/lib/admin-auth";
 import { put } from "@vercel/blob";
+import { writeFile, mkdir } from "node:fs/promises";
+import path from "node:path";
 
 export const runtime = "nodejs";
 
@@ -21,20 +23,24 @@ export async function POST(req: NextRequest) {
       throw Object.assign(new Error("No file uploaded"), { status: 400 });
     }
 
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
-      throw Object.assign(new Error("Vercel Blob is not configured. Please set BLOB_READ_WRITE_TOKEN in environment variables."), { status: 500 });
+    const filename = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_")}`;
+
+    // 有 Vercel Blob Token 时上传到 Blob,否则存到本地 public/uploads
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      const blob = await put(filename, file, {
+        access: 'public',
+      });
+      return NextResponse.json({ url: blob.url });
     }
 
-    const filename = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_")}`;
-    
-    // Upload to Vercel Blob
-    const blob = await put(filename, file, {
-      access: 'public',
-    });
+    // 本地存储 fallback
+    const uploadDir = path.join(process.cwd(), "public", "uploads");
+    await mkdir(uploadDir, { recursive: true });
+    const filePath = path.join(uploadDir, filename);
+    const buffer = Buffer.from(await file.arrayBuffer());
+    await writeFile(filePath, buffer);
 
-    return NextResponse.json({
-      url: blob.url
-    });
+    return NextResponse.json({ url: `/uploads/${filename}` });
   } catch (e: unknown) {
     const status = e && typeof e === "object" && "status" in e ? Number((e as Record<string, unknown>).status) : 500;
     return NextResponse.json({ error: e instanceof Error ? e.message : "Internal error" }, { status });

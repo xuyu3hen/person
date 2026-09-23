@@ -91,6 +91,7 @@ export function DiaryTab() {
   const [entries, setEntries] = useState<DiaryEntry[]>([]);
   const [status, setStatus] = useState("");
   const [search, setSearch] = useState("");
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   const [editingId, setEditingId] = useState<string>("");
   const editingEntry = useMemo(
@@ -499,7 +500,8 @@ export function DiaryTab() {
                     width={80}
                     height={80}
                     unoptimized
-                    className="h-20 w-20 rounded-xl border border-[color:var(--border)] object-cover"
+                    className="h-20 w-20 rounded-xl border border-[color:var(--border)] object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => setLightboxUrl(url)}
                   />
                   <button
                     type="button"
@@ -565,6 +567,30 @@ export function DiaryTab() {
           </button>
         </div>
       </div>
+
+      {/* Lightbox */}
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-8 cursor-pointer"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <Image
+            src={lightboxUrl}
+            alt="预览"
+            width={1200}
+            height={1200}
+            unoptimized
+            className="max-w-full max-h-full object-contain rounded-lg"
+          />
+          <button
+            type="button"
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/20 text-white text-xl flex items-center justify-center hover:bg-white/30 transition-colors"
+            onClick={() => setLightboxUrl(null)}
+          >
+            ×
+          </button>
+        </div>
+      )}
     </div>
   );
 }
