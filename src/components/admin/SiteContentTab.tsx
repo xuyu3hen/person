@@ -1,5 +1,5 @@
 "use client";
-
+ 
 import { useEffect, useState } from "react";
 
 import type { SiteContent } from "@/lib/site-content";
