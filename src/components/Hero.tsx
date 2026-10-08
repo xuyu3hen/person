@@ -1,4 +1,7 @@
+"use client";
+
 import { ArrowUpRight, Globe } from "lucide-react";
+import { motion, useScroll, useTransform } from "framer-motion";
 
 import type { SiteContent } from "@/lib/site-content";
 import { Starfield } from "./Starfield";
@@ -26,16 +29,27 @@ export function Hero({
     (x) => x.label === "Google Scholar"
   )?.href;
 
+  const { scrollY } = useScroll();
+  // 背景随页面滚动产生小幅下移（视差纵深），区间限制在背景加高区域内不露边
+  const bgY = useTransform(scrollY, [0, 800], ["-6%", "6%"]);
+
   return (
     <section id="home" className="section relative overflow-hidden">
-      <Starfield />
-      <div className="container relative pt-20 pb-14 sm:pt-24 sm:pb-18">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
+      {/* Parallax 背景层：外层裁切，内层加高 125% 提供位移余量 */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
+      >
+        <motion.div
+          style={{ y: bgY }}
+          className="absolute inset-x-0 -top-[12%] h-[125%]"
         >
+          <Starfield />
           <div className="heroGlow" />
-        </div>
+        </motion.div>
+      </div>
+
+      <div className="container relative pt-20 pb-14 sm:pt-24 sm:pb-18">
         <div className="contentGrid" style={{ position: "relative", zIndex: 2 }}>
           <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.2fr)_340px]">
             <div className="card relative overflow-hidden p-7 sm:p-9 lg:p-10">

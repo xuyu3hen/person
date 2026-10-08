@@ -45,25 +45,36 @@ export type AwardOrTalk = {
 
 const projects: Project[] = [
   {
-    name: "迷亭桑的梦想生活",
+    name: "机车检修手持机客户端 (jcjx-phone)",
     description:
-      "个人网站（含日记后台）：记录生活、计划与想法，支持主题切换与静态展示。",
-    tech: ["Next.js", "TypeScript", "Tailwind"],
+      "面向安卓手持机定制开发的机车检修系统客户端，基于 Flutter。支持车间派工、检修进度、调车计划、售后临修登记、入段细录等核心作业场景，配置多环境 Flavor 与 CI/CD 自动化发布。",
+    tech: ["Flutter", "Dart", "Android", "CI/CD"],
+    repoUrl: "https://github.com/xuyu3hen/jcjx-phoneNew",
+    featured: true,
+  },
+  {
+    name: "机务系统数字化管控平台手机端 (jwDataCenter)",
+    description:
+      "机务系统数字化管控平台的移动端 APP，实现 200 项指标、31 张报表、违章违纪实时录入与确认申诉流程，支持消息推送与分层级权限控制。",
+    tech: ["Flutter", "Android", "Push"],
+    repoUrl: "https://github.com/xuyu3hen/jwDataCenter",
+    featured: true,
+  },
+  {
+    name: "车站客运管理手持端 (wkl_mobile)",
+    description:
+      "基于 Flutter 开发的车站客运管理手持端 App，覆盖 BOM 票务核销/验证、采购单据操作，提供离线凭证恢复、应用内 APK 更新、相册/拍照附件上传等能力。",
+    tech: ["Flutter", "Dart", "Android"],
+    repoUrl: "https://github.com/xuyu3hen/wkl_mobile",
+    featured: true,
+  },
+  {
+    name: "迷亭桑的梦想生活 (person)",
+    description:
+      "个人数字花园：Next.js 15 + React 19 构建的个人主页与后台管理系统，支持日记、笔记、计划、体型追踪等，部署于 Vercel。",
+    tech: ["Next.js", "TypeScript", "Tailwind", "Vercel"],
     repoUrl: "https://github.com/xuyu3hen/person",
     featured: true,
-  },
-  {
-    name: "Research Notes",
-    description: "科研学习与工程实践的笔记与实验记录（建议独立仓库维护）。",
-    tech: ["Markdown", "Obsidian", "GitHub Pages"],
-    repoUrl: "https://github.com/xuyu3hen",
-    featured: true,
-  },
-  {
-    name: "Toolbox",
-    description: "个人常用脚手架与自动化脚本集合：让项目初始化、发布与维护更省心。",
-    tech: ["Node.js", "TypeScript", "CI/CD"],
-    repoUrl: "https://github.com/xuyu3hen",
   },
 ];
 
@@ -78,84 +89,59 @@ export const site = {
   cvUrl: "/cv.txt",
   socials: [
     { label: "GitHub", href: "https://github.com/xuyu3hen" },
-    { label: "Google Scholar", href: "" },
-    { label: "LinkedIn", href: "" },
-    { label: "ORCID", href: "" },
+    { label: "知乎", href: "https://www.zhihu.com/people/miting-92" },
+    { label: "Bilibili", href: "https://space.bilibili.com/337301704" },
   ] satisfies SocialLink[],
   researchAreas: [
     {
-      title: "Developer Tooling",
-      keywords: ["DX", "automation", "docs"],
+      title: "Android 客户端开发",
+      keywords: ["Flutter", "Android", "手持机"],
       description:
-        "面向个人与团队效率的工具与工作流：模板化、自动化、结构化知识管理，让产出更可持续。",
+        "面向铁路机务/客运场景的安卓手持机客户端开发，基于 Flutter 跨平台框架，覆盖检修、派工、调车、票务核销等核心业务，支持多环境打包与 CI/CD 自动化发布。",
     },
     {
-      title: "ML Systems",
-      keywords: ["latency", "serving", "observability"],
+      title: "业务系统工程化",
+      keywords: ["架构", "可维护性", "自动化"],
       description:
-        "关注推理链路性能与可观测性：让系统更稳定、成本更可控，同时保留对实验与评测的透明度。",
+        "从业务流程出发设计客户端架构：模块化拆分、状态管理、网络层封装、版本管理与自动化构建脚本，提升团队协作效率与交付质量。",
     },
     {
-      title: "Web for Research",
-      keywords: ["visualization", "SSG", "UX"],
+      title: "Web 个人系统",
+      keywords: ["Next.js", "全栈", "个人工具"],
       description:
-        "用极简信息架构与高性能前端展示研究/项目/成果，让内容可检索、可链接、可持续更新。",
+        "用 Next.js 构建个人数字花园，整合日记、计划、笔记与体型追踪，探索 Serverless 与本地存储的混合架构，让个人系统可持续迭代。",
     },
   ] satisfies ResearchArea[],
   projects,
-  publications: [
-    {
-      year: 2025,
-      title: "A Reproducible Protocol for Tool-Using Agent Evaluation",
-      authors: "Yuchen Xu, Coauthor A, Coauthor B",
-      venue: "NeurIPS (Workshop)",
-      doiUrl: "https://doi.org/10.0000/example",
-      pdfUrl: "https://arxiv.org/pdf/0000.00000.pdf",
-      codeUrl: "https://github.com/xuyu3hen",
-      bibtex:
-        "@inproceedings{xu2025agenteval,\n  title={A Reproducible Protocol for Tool-Using Agent Evaluation},\n  author={Yuchen Xu and Coauthor A and Coauthor B},\n  booktitle={NeurIPS Workshop},\n  year={2025},\n  url={https://arxiv.org/abs/0000.00000}\n}",
-    },
-    {
-      year: 2024,
-      title: "Observability-First Serving for Efficient LLM Inference",
-      authors: "Yuchen Xu, Coauthor C",
-      venue: "arXiv",
-      pdfUrl: "https://arxiv.org/pdf/0000.00000.pdf",
-      bibtex:
-        "@article{xu2024observability,\n  title={Observability-First Serving for Efficient LLM Inference},\n  author={Yuchen Xu and Coauthor C},\n  journal={arXiv preprint arXiv:0000.00000},\n  year={2024}\n}",
-    },
-  ] satisfies Publication[],
+  publications: [] satisfies Publication[],
   experience: [
     {
-      org: "楚科信息科技有限公司",
+      org: "武汉楚科研发部（原武汉铁路局信息所）",
       role: "软件工程师",
-      time: "2022 — 2026",
+      time: "2022 — 至今",
       bullets: [
-        "负责公司核心业务系统的架构设计与全栈开发。",
-        "落地可观测性体系，提升故障定位效率。",
+        "参与机车检修管理信息系统等核心业务系统的客户端开发。",
+        "负责安卓手持机客户端功能迭代与架构优化，保障系统稳定运行。",
       ],
     },
     {
       org: "华中科技大学",
-      role: "计算机科学与技术",
+      role: "计算机科学与技术 · 学士",
       time: "2018 — 2022",
       bullets: [
-        "主修计算机科学与技术核心课程，参与多个重点实验室科研项目。",
+        "第一学期就读于土木工程专业，第二学期起转专业至计算机科学与技术。",
+        "系统学习数据结构、操作系统、计算机网络等核心课程，打下扎实工程基础。",
       ],
     },
-  ] satisfies TimelineItem[],
-  awards: [
-    { year: 2025, title: "Best Paper Award (Workshop)", note: "(Example)" },
-    { year: 2023, title: "Outstanding Graduate Scholarship" },
-  ] satisfies AwardOrTalk[],
-  talks: [
     {
-      year: 2025,
-      title: "Tool-Using Agents: Evaluation & Engineering",
-      note: "Invited Talk",
-      link: "https://example.com/slides",
+      org: "湖北省实验中学",
+      role: "高中 · 理科",
+      time: "2015 — 2018",
+      bullets: ["理科方向学习，为后续计算机专业学习奠定基础。"],
     },
-  ] satisfies AwardOrTalk[],
+  ] satisfies TimelineItem[],
+  awards: [] satisfies AwardOrTalk[],
+  talks: [] satisfies AwardOrTalk[],
 };
 
 export const nav = [

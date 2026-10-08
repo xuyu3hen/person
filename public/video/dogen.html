@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>道元禅师 · 水墨动画</title>
+<style>
+  html,body{margin:0;padding:0;background:#1a1815;display:flex;align-items:center;justify-content:center;min-height:100vh;}
+  canvas{max-width:100vw;max-height:100vh;box-shadow:0 20px 80px rgba(0,0,0,.6);}
+  #hint{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);color:#8a8275;font:13px/1.6 sans-serif;}
+</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<div id="hint">道元禅师（1200—1253） · ?record=1 自动录制 · 点击画面重播</div>
+<script>
+"use strict";
+const W = 1920, H = 1080;
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+
+/* ---------- 工具 ---------- */
+function mulberry32(a){return function(){let t=a+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;}}
+const rnd = mulberry32(20261008);
+const clamp01 = v => Math.max(0, Math.min(1, v));
+const easeIO = p => p<0.5 ? 2*p*p : 1-Math.pow(-2*p+2,2)/2;
+const easeOut = p => 1-Math.pow(1-p,3);
+const FONT_KAI = "'KaiTi','STKaiti','楷体',serif";
+const FONT_SONG = "'SimSun','宋体',serif";
+
+// 竖排文字
+function vText(text, x, y, size, gap, alpha, font){
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.font = `${size}px ${font}`;
+  ctx.fillStyle = "#23201b";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  for(let i=0;i<text.length;i++){
+    ctx.fillText(text[i], x, y + i*gap);
+  }
+  ctx.restore();
+}
+// 横排居中文字
+function hText(text, x, y, size, alpha, font=FONT_KAI, weight=""){
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.font = `${weight} ${size}px ${font}`.trim();
+  ctx.fillStyle = "#2b2721";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
+
+/* ---------- 背景元素 ---------- */
+const paperNoise = Array.from({length:900},()=>({x:rnd()*W,y:rnd()*H,r:rnd()*1.4+0.3,a:rnd()*0.05+0.02}));
+function paper(){
+  ctx.fillStyle = "#ece4d1";
+  ctx.fillRect(0,0,W,H);
+  // 边缘暗角
+  const g = ctx.createRadialGradient(W/2,H/2,H*0.25,W/2,H/2,H*0.85);
+  g.addColorStop(0,"rgba(0,0,0,0)");
+  g.addColorStop(1,"rgba(60,45,25,0.18)");
+  ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+  for(const n of paperNoise){
+    ctx.fillStyle = `rgba(80,60,35,${n.a})`;
+    ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,7); ctx.fill();
+  }
+}
+
+// 远山（多层墨色）
+function ridge(baseY, amp, color, seedShift){
+  const r = mulberry32(9917+seedShift);
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(-50, H+50);
+  let x = -50;
+  ctx.lineTo(x, baseY);
+  while(x < W+100){
+    const nx = x + 260 + r()*220;
+    const peak = baseY - amp*(0.35+r()*0.65);
+    ctx.quadraticCurveTo((x+nx)/2, peak, nx, baseY + (r()-0.5)*30);
+    x = nx;
+  }
+  ctx.lineTo(W+50, H+50);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+function mountains(fog=1){
+  ridge(H*0.62, 150, `rgba(70,72,76,${0.32*fog})`, 1);
+  ridge(H*0.72, 120, `rgba(55,58,63,${0.45*fog})`, 7);
+  ridge(H*0.86, 90, `rgba(40,43,48,${0.6*fog})`, 13);
+}
+
+// 云雾
+function mist(y, alpha){
+  const g = ctx.createLinearGradient(0,y-80,0,y+80);
+  g.addColorStop(0,"rgba(236,228,209,0)");
+  g.addColorStop(0.5,`rgba(236,228,209,${alpha})`);
+  g.addColorStop(1,"rgba(236,228,209,0)");
+  ctx.fillStyle = g; ctx.fillRect(0,y-80,W,160);
+}
+
+// 打坐僧人剪影
+function monk(cx, cy, scale, alpha){
+  ctx.save();
+  ctx.translate(cx,cy); ctx.scale(scale,scale);
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = "#1e1c18";
+  // 头
+  ctx.beginPath(); ctx.arc(0,-96,20,0,7); ctx.fill();
+  // 身体（盘腿轮廓）
+  ctx.beginPath();
+  ctx.moveTo(-26,-78);
+  ctx.quadraticCurveTo(-15,-92,0,-90);
+  ctx.quadraticCurveTo(15,-92,26,-78);
+  ctx.quadraticCurveTo(40,-40,58,-8);
+  ctx.quadraticCurveTo(60,14,38,18);
+  ctx.lineTo(-38,18);
+  ctx.quadraticCurveTo(-60,14,-58,-8);
+  ctx.quadraticCurveTo(-40,-40,-26,-78);
+  ctx.fill();
+  ctx.restore();
+}
+
+// 圆相 Enso
+function enso(cx, cy, r, progress, alpha, lw=26){
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.strokeStyle = "#26231d";
+  ctx.lineWidth = lw;
+  ctx.lineCap = "round";
+  const start = -Math.PI*0.72;
+  const gap = 0.55; // 缺口弧度
+  ctx.beginPath();
+  ctx.arc(cx,cy,r,start, start + (Math.PI*2-gap)*clamp01(progress));
+  ctx.stroke();
+  ctx.restore();
+}
+
+// 落叶
+const leaves = Array.from({length:26},()=>({x:rnd()*W,y:rnd()*H,s:rnd()*7+5,v:rnd()*0.6+0.3,rot:rnd()*7,ph:rnd()*7}));
+function fallingLeaves(t, alpha){
+  ctx.save();
+  for(const L of leaves){
+    const y = ((L.y + t*40*L.v) % (H+40)) - 20;
+    const x = L.x + Math.sin(t*0.8+L.ph)*60;
+    ctx.save();
+    ctx.translate(x,y); ctx.rotate(L.rot+t*0.5);
+    ctx.globalAlpha = alpha*0.75;
+    ctx.fillStyle = "#a35a2e";
+    ctx.beginPath();
+    ctx.ellipse(0,0,L.s,L.s*0.45,0,0,7);
+    ctx.fill();
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+/* ---------- 场景定义 ---------- */
+const scenes = [
+  {d:6.5, draw:(p,t)=>{
+      mountains(0.9); mist(H*0.55,0.5);
+      // 标题墨晕
+      const ink = easeOut(p);
+      ctx.save();
+      ctx.globalAlpha = ink;
+      const g = ctx.createRadialGradient(W*0.5,H*0.42,10,W*0.5,H*0.42,260);
+      g.addColorStop(0,"rgba(30,28,24,0.12)"); g.addColorStop(1,"rgba(30,28,24,0)");
+      ctx.fillStyle=g; ctx.fillRect(W*0.5-260,H*0.42-260,520,520);
+      ctx.restore();
+      vText("道元", W*0.5, H*0.42-150, 190, 200, easeOut(clamp01(p*1.4)), FONT_KAI);
+      hText("日本曹洞宗初代祖师 · 1200 — 1253", W*0.5, H*0.72, 34, easeOut(clamp01((p-0.4)*1.6)), FONT_SONG);
+  }},
+  {d:6, draw:(p,t)=>{
+      mountains(0.7);
+      // 屋舍与香烟
+      ctx.save();
+      ctx.globalAlpha = 0.85;
+      ctx.fillStyle="#3a3730";
+      ctx.beginPath();
+      ctx.moveTo(W*0.3-130,H*0.6); ctx.lineTo(W*0.3,H*0.53); ctx.lineTo(W*0.3+130,H*0.6);
+      ctx.closePath(); ctx.fill();
+      ctx.fillRect(W*0.3-100,H*0.6,200,90);
+      ctx.restore();
+      ctx.save();
+      ctx.strokeStyle="rgba(60,55,45,0.5)"; ctx.lineWidth=4;
+      ctx.beginPath();
+      for(let i=0;i<=40;i++){const q=i/40;const y=H*0.5-q*180;const x=W*0.3+Math.sin(q*4+t*0.8)*14*q;ctx.lineTo(x,y);}
+      ctx.stroke(); ctx.restore();
+      vText("幼失怙恃", W*0.68, H*0.3, 64, 86, clamp01(p*1.5), FONT_KAI);
+      hText("观香烟消散，悟世间无常", W*0.5, H*0.85, 36, clamp01(p*1.4-0.2), FONT_KAI);
+  }},
+  {d:6.5, draw:(p,t)=>{
+      // 比叡山：塔
+      ridge(H*0.6,200,"rgba(50,53,58,0.55)",31);
+      ctx.save();
+      ctx.translate(W*0.42,H*0.56); ctx.globalAlpha=0.9;
+      ctx.fillStyle="#2e2b25";
+      for(let i=0;i<5;i++){const y=i*70;ctx.fillRect(-60+i*8,y,120-i*16,46);ctx.beginPath();ctx.moveTo(-72+i*8,y);ctx.lineTo(0,y-34);ctx.lineTo(72-i*8,y);ctx.fill();}
+      ctx.restore();
+      vText("少年出家，疑情顿生", W*0.66, H*0.22, 56, 78, clamp01(p*1.4), FONT_KAI);
+      hText("「既是本觉，为何还要修行？」", W*0.5, H*0.88, 40, clamp01(p*1.4-0.25), FONT_KAI);
+  }},
+  {d:6.5, draw:(p,t)=>{
+      // 海与小舟
+      ctx.save();
+      ctx.fillStyle="rgba(60,70,82,0.18)"; ctx.fillRect(0,H*0.55,W,H*0.45);
+      ctx.strokeStyle="rgba(40,50,60,0.4)"; ctx.lineWidth=3;
+      for(let row=0;row<6;row++){ctx.beginPath();for(let x=0;x<=W;x+=30){const y=H*0.6+row*70+Math.sin(x*0.01+t*1.4+row)*10;ctx.lineTo(x,y);}ctx.stroke();}
+      ctx.restore();
+      const bx = W*0.3 + easeIO(p)*W*0.35;
+      ctx.save();
+      ctx.fillStyle="#2b2823";
+      ctx.beginPath(); ctx.moveTo(bx-90,H*0.7); ctx.quadraticCurveTo(bx,H*0.75,bx+90,H*0.7);ctx.lineTo(bx+70,H*0.76);ctx.lineTo(bx-70,H*0.76);ctx.fill();
+      ctx.beginPath(); ctx.moveTo(bx,H*0.5);ctx.lineTo(bx+50,H*0.68);ctx.lineTo(bx,H*0.68);ctx.fill();
+      ctx.restore();
+      vText("一二二三年 · 渡海入宋", W*0.7, H*0.2, 52, 72, clamp01(p*1.4), FONT_KAI);
+      hText("至明州，登天童山", W*0.5, H*0.9, 36, clamp01(p*1.4-0.25), FONT_SONG);
+  }},
+  {d:7, draw:(p,t)=>{
+      mountains(0.6); mist(H*0.6,0.4);
+      monk(W*0.6, H*0.62, 1.5, 0.9);
+      // 香板
+      ctx.save(); ctx.strokeStyle="#3a352c"; ctx.lineWidth=10; ctx.lineCap="round";
+      ctx.beginPath(); ctx.moveTo(W*0.6-170,H*0.34); ctx.lineTo(W*0.6-120,H*0.5); ctx.stroke(); ctx.restore();
+      vText("参如净禅师", W*0.3, H*0.22, 58, 80, clamp01(p*1.5), FONT_KAI);
+      hText("闻「身心脱落」，言下大悟", W*0.5, H*0.88, 42, clamp01(p*1.3-0.2), FONT_KAI);
+  }},
+  {d:6.5, draw:(p,t)=>{
+      ridge(H*0.7,120,"rgba(50,53,58,0.5)",51);
+      monk(W*0.5, H*0.66, 1.9, 0.95);
+      fallingLeaves(t, clamp01(p));
+      vText("只管打坐", W*0.72, H*0.28, 76, 100, clamp01(p*1.4), FONT_KAI);
+      hText("不求神佛，不求解脱", W*0.5, H*0.9, 36, clamp01(p*1.4-0.2), FONT_KAI);
+  }},
+  {d:7, draw:(p,t)=>{
+      const q = easeIO(clamp01(p*1.3));
+      // 两环渐成一环
+      enso(W*0.5 - (1-q)*120, H*0.45, 130, clamp01(p*2), clamp01(p*1.5), 18);
+      enso(W*0.5 + (1-q)*120, H*0.45, 130, clamp01(p*2-0.2), clamp01(p*1.5-0.15), 18);
+      vText("修证一如", W*0.5, H*0.68, 64, 86, clamp01(p*1.4-0.2), FONT_KAI);
+      hText("修行，即是证悟本身", W*0.5, H*0.9, 36, clamp01(p*1.4-0.3), FONT_KAI);
+  }},
+  {d:6.5, draw:(p,t)=>{
+      // 寺檐
+      ctx.save(); ctx.fillStyle="#2e2b25";
+      ctx.beginPath(); ctx.moveTo(W*0.2,H*0.42);ctx.lineTo(W*0.5,H*0.32);ctx.lineTo(W*0.8,H*0.42);ctx.lineTo(W*0.75,H*0.48);ctx.lineTo(W*0.25,H*0.48);ctx.fill();
+      ctx.fillRect(W*0.28,H*0.48,W*0.44,220); ctx.restore();
+      mountains(0.4);
+      vText("归国建永平寺", W*0.32, H*0.18, 56, 78, clamp01(p*1.4), FONT_KAI);
+      hText("著《正法眼藏》，泽被后世", W*0.5, H*0.88, 38, clamp01(p*1.4-0.2), FONT_KAI);
+  }},
+  {d:7, draw:(p,t)=>{
+      // 月
+      ctx.save(); const g=ctx.createRadialGradient(W*0.68,H*0.34,20,W*0.68,H*0.34,220);
+      g.addColorStop(0,"rgba(240,232,210,0.9)");g.addColorStop(1,"rgba(240,232,210,0)");
+      ctx.fillStyle=g;ctx.fillRect(W*0.68-220,H*0.34-220,440,440);
+      ctx.fillStyle="#e8dfc8";ctx.beginPath();ctx.arc(W*0.68,H*0.34,120,0,7);ctx.fill();ctx.restore();
+      enso(W*0.38,H*0.45,160,clamp01(p*1.3),clamp01(p*1.5),24);
+      vText("眼横鼻直", W*0.6, H*0.62, 58, 80, clamp01(p*1.4-0.2), FONT_KAI);
+      hText("道，只在寻常日用之间", W*0.5, H*0.9, 36, clamp01(p*1.4-0.3), FONT_KAI);
+  }},
+  {d:7.5, draw:(p,t)=>{
+      mountains(0.85); mist(H*0.6,0.45);
+      const q = easeIO(clamp01(p*1.2));
+      enso(W*0.5,H*0.42,200,q,0.92,30);
+      hText("修证一如 · 只管打坐", W*0.5, H*0.72, 48, clamp01(p*1.5-0.2), FONT_KAI);
+      hText("道元禅师 1200 — 1253", W*0.5, H*0.86, 30, clamp01(p*1.5-0.35), FONT_SONG);
+  }},
+];
+const TOTAL = scenes.reduce((s,x)=>s+x.d,0);
+
+/* ---------- 主渲染 ---------- */
+function render(t){
+  paper();
+  let acc = 0;
+  for(let i=0;i<scenes.length;i++){
+    const s = scenes[i];
+    if(t >= acc && t < acc+s.d){
+      const p = (t-acc)/s.d;
+      // 场景间淡入淡出
+      const fade = Math.min(1, p/0.12, (1-p)/0.1);
+      ctx.save(); ctx.globalAlpha = clamp01(fade);
+      s.draw(p,t-acc);
+      ctx.restore();
+      break;
+    }
+    acc += s.d;
+  }
+  if(t>=TOTAL) scenes[scenes.length-1].draw(1,TOTAL);
+}
+
+/* ---------- 播放/录制 ---------- */
+let raf=0, startAt=0, recorder=null;
+function loop(now){
+  if(!startAt) startAt = now;
+  const t = (now-startAt)/1000;
+  render(t);
+  if(t >= TOTAL){
+    render(TOTAL);
+    if(recorder && recorder.state!=="inactive"){ setTimeout(()=>recorder.stop(),400); }
+    return;
+  }
+  raf = requestAnimationFrame(loop);
+}
+function play(record){
+  cancelAnimationFrame(raf);
+  startAt = 0;
+  render(0);
+  if(record){
+    const stream = canvas.captureStream(30);
+    let type = "video/webm;codecs=vp9";
+    if(!MediaRecorder.isTypeSupported(type)) type = "video/webm;codecs=vp8";
+    recorder = new MediaRecorder(stream,{mimeType:type,videoBitsPerSecond:9_000_000});
+    const chunks=[];
+    recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};
+    recorder.onstop=()=>{
+      const blob=new Blob(chunks,{type:"video/webm"});
+      const mb=(blob.size/1024/1024).toFixed(1);
+      if(new URLSearchParams(location.search).has("ingest")){
+        document.getElementById("hint").textContent="录制完成："+mb+"MB，正在上传到本地服务…";
+        fetch("/api/ingest-video",{method:"POST",body:blob})
+          .then(r=>r.json())
+          .then(j=>{document.getElementById("hint").textContent="已保存 "+(j.bytes/1024/1024).toFixed(1)+"MB";})
+          .catch(e=>{document.getElementById("hint").textContent="上传失败："+e;});
+      }else{
+        const a=document.createElement("a");
+        a.href=URL.createObjectURL(blob);
+        a.download="daoyuan-zen-62s.webm";
+        document.body.appendChild(a); a.click(); a.remove();
+        document.getElementById("hint").textContent="录制完成："+mb+"MB";
+      }
+    };
+    recorder.start();
+  }
+  raf = requestAnimationFrame(loop);
+}
+const wantsRecord = new URLSearchParams(location.search).has("record");
+window.addEventListener("load",()=>setTimeout(()=>play(wantsRecord),300));
+canvas.addEventListener("click",()=>play(false));
+</script>
+</body>
+</html>
