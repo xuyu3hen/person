@@ -34,30 +34,6 @@ async function getPapers() {
   }
 }
 
-async function getDiaryEntries() {
-  try {
-    await ensureSchema();
-    const sql = getSql();
-    const result = await sql`
-      SELECT id, date, title, content, mood
-      FROM journal_diary
-      ORDER BY date DESC
-      LIMIT 5;
-    `;
-    return result.rows.map((row) => {
-      const r = row as Record<string, unknown>;
-      return {
-        date: String(r.date).slice(0, 10),
-        summary: String(r.content).slice(0, 120),
-        mood: r.mood ? String(r.mood) : undefined,
-      };
-    });
-  } catch (e) {
-    console.error("Failed to load diary entries:", e);
-    return undefined;
-  }
-}
-
 async function getTodayPlans() {
   try {
     await ensureSchema();
@@ -85,33 +61,6 @@ async function getTodayPlans() {
   }
 }
 
-async function getPublicNotes() {
-  try {
-    await ensureSchema();
-    const sql = getSql();
-    const result = await sql`
-      SELECT id, title, content, tags, created_at
-      FROM journal_notes
-      WHERE visibility = 'public'
-      ORDER BY created_at DESC
-      LIMIT 4;
-    `;
-    return result.rows.map((row) => {
-      const r = row as Record<string, unknown>;
-      return {
-        id: String(r.id),
-        title: String(r.title),
-        summary: String(r.content).replace(/\s+/g, " ").trim().slice(0, 120),
-        tags: Array.isArray(r.tags) ? (r.tags as string[]) : [],
-        createdAt: new Date(String(r.created_at)).toISOString(),
-      };
-    });
-  } catch (e) {
-    console.error("Failed to load public notes:", e);
-    return undefined;
-  }
-}
-
 export async function generateMetadata(): Promise<Metadata> {
   const siteContent = (await getSiteContentSafe()).content;
   const title = siteContent.profile.name;
@@ -131,17 +80,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const [
-    papers,
-    diaryEntries,
-    todayPlans,
-    publicNotes,
-    siteContentRecord,
-  ] = await Promise.all([
+  const [papers, todayPlans, siteContentRecord] = await Promise.all([
     getPapers(),
-    getDiaryEntries(),
     getTodayPlans(),
-    getPublicNotes(),
     getSiteContentSafe(),
   ]);
   const siteContent = siteContentRecord.content;
@@ -153,9 +94,7 @@ export default async function Home() {
         <HomeSections
           siteContent={siteContent}
           papers={papers}
-          diaryEntries={diaryEntries}
           todayPlans={todayPlans}
-          publicNotes={publicNotes}
         />
       </main>
       <Footer siteContent={siteContent} />
