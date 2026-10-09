@@ -138,7 +138,7 @@ export function GitHubHeatmap({ username }: { username?: string }) {
 
   if (loading) {
     return (
-      <div className="card p-5 animate-pulse">
+      <div className="card mx-auto w-full max-w-3xl p-5 animate-pulse">
         <div className="h-4 w-28 bg-[color:var(--border)] rounded mb-3" />
         <div className="h-[100px] w-full bg-[color:var(--border)] rounded" />
       </div>
@@ -146,7 +146,7 @@ export function GitHubHeatmap({ username }: { username?: string }) {
   }
 
   return (
-    <div className="card relative overflow-hidden p-6">
+    <div className="card relative mx-auto w-full max-w-3xl overflow-hidden p-6">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,color-mix(in_srgb,var(--accent)_58%,transparent),transparent)] opacity-70"
